@@ -302,7 +302,7 @@ def infer_variable_roles(
     # ── 记录 C 是否充足 ─────────────────────────────────────────────────────
     n_c = (roles_df["role"] == "confounder_C").sum()
     if n_c == 0:
-        logger.warning("C candidates insufficient; residualization skipped or weakened")
+        logger.warning("C candidates insufficient (n=0); DML residualization will be skipped.")
     elif n_c < 2:
         logger.warning(f"C 变量仅有 {n_c} 个，残差化效果可能有限")
     else:
@@ -856,8 +856,7 @@ def run_model2_dml_residual(
 
     # ── C 不足时降级 ─────────────────────────────────────────────────────────
     if not c_cols:
-        logger.warning("C candidates insufficient; residualization skipped or weakened")
-        logger.warning("Model 2 (DML 残差) 不可用：C 为空，跳过")
+        logger.warning("C candidates insufficient (n=0); Model 2 (DML 残差) 不可用，跳过残差化。")
         return {
             "model_name": "dml_residual_soft_sensor",
             "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan"),
@@ -1152,7 +1151,7 @@ def main():
     logger.info(f"排除变量 ({len(excluded)}): {excluded}")
 
     if not c_cols:
-        logger.warning("C candidates insufficient; residualization skipped or weakened")
+        logger.warning("C candidates insufficient (n=0); DML residualization will be skipped.")
 
     # 所有特征列（排除 target 和 time_col）
     skip_cols = {target_col}
