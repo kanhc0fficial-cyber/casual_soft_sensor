@@ -205,7 +205,10 @@ def extract_ancestors(G: nx.DiGraph, target_node: str) -> pd.DataFrame:
         try:
             dist = nx.shortest_path_length(G, anc, target_node)
         except nx.NetworkXNoPath:
-            dist = -1
+            # nx.ancestors() guarantees a path exists; this branch indicates
+            # an unexpected graph inconsistency (e.g., graph mutated mid-run).
+            print(f"[extract_ancestors] ⚠ 无法计算 '{anc}' 到 '{target_node}' 的路径长度，设为 None")
+            dist = None
         parsed = parse_node_name(anc)
         rows.append({
             "node": anc,
@@ -262,6 +265,7 @@ def build_dml_jobs(
     """
     parent_nodes_of_target = set(parents_df["node"].tolist())
     desc_nodes = set(descendants_df["node"].tolist())
+    # excluded = Desc(Y) ∪ {Y}  (covers the "- {T} - Desc(Y) - {Y}" part of the formula)
     excluded = desc_nodes | {target_node}
 
     rows = []
