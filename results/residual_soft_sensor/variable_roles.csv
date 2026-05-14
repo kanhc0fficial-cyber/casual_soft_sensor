@@ -1,0 +1,9 @@
+﻿variable,role,reason
+env_temperature,confounder_C,列名含工况关键词 'temperature'
+env_feed_rate,confounder_C,列名含工况关键词 'feed'
+op_reagent_flow,operation_A,人工指定操作变量
+op_air_flow,operation_A,人工指定操作变量
+state_foam_thickness,state_S,非目标/操作/工况/排除变量，归入状态变量
+state_pH_value,state_S,非目标/操作/工况/排除变量，归入状态变量
+state_level_sensor,state_S,非目标/操作/工况/排除变量，归入状态变量
+concentrate_grade,target,目标变量

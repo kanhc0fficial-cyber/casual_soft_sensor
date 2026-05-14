@@ -1,0 +1,54 @@
+# ==============================================================================
+# 配置文件：DML 正交残差软测量
+# 用法：python scripts/train_dml_residual_soft_sensor.py --config configs/residual_soft_sensor.yaml
+# ==============================================================================
+
+# ── 数据路径 ──────────────────────────────────────────────────────────────────
+data_path: "data/modeling_dataset_xin2_final.parquet"
+dag_path: "data/features/global_edges.csv"
+output_dir: "results/residual_soft_sensor"
+
+# ── 目标变量与时间列 ───────────────────────────────────────────────────────────
+target_col: "concentrate_grade"
+time_col: null                          # 若为 null，则按行序排列（不用时间解析）
+
+# ── 操作变量（人工指定，必填） ───────────────────────────────────────────────
+# 必须手工填写真实数据中已知的操作变量名；当前版本不支持真实数据下自动推断。
+# 若使用合成演示数据（allow_synthetic_demo: true），可留空，脚本会自动填入示例列名。
+operation_vars: []
+
+# ── 排除列（不参与任何建模的列，如 ID、标签衍生列等） ───────────────────────
+exclude_cols: []
+
+# ── 数据切分比例（总计须为 1.0） ─────────────────────────────────────────────
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+
+# ── 滑动窗口 ──────────────────────────────────────────────────────────────────
+window_size: 12
+
+# ── 残差化基模型（g_model 和 q_model 共用） ───────────────────────────────────
+# 可选：lightgbm | random_forest | mlp
+residualization_model: "lightgbm"
+
+# ── 残差序列模型 ──────────────────────────────────────────────────────────────
+# 目前支持：lstm
+residual_sequence_model: "lstm"
+
+# ── LSTM 超参 ─────────────────────────────────────────────────────────────────
+lstm_hidden_size: 64
+lstm_num_layers: 2
+lstm_dropout: 0.1
+lstm_epochs: 50
+lstm_batch_size: 64
+lstm_lr: 0.001
+lstm_patience: 8
+
+# ── 随机种子 ──────────────────────────────────────────────────────────────────
+random_seed: 42
+
+# ── 演示模式（默认关闭） ─────────────────────────────────────────────────────
+# 设为 true 时，若 data_path 文件不存在，脚本会自动使用合成演示数据运行。
+# 生产环境请保持 false，否则数据缺失时脚本会产出"伪成功"结果。
+allow_synthetic_demo: false
