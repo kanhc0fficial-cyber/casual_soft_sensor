@@ -133,6 +133,7 @@ def load_config(config_path: str) -> dict:
         "lstm_patience": 8,
         "random_seed": 42,
         "output_dir": "results/residual_soft_sensor",
+        "allow_synthetic_demo": False,
     }
     for k, v in defaults.items():
         cfg.setdefault(k, v)
@@ -154,8 +155,15 @@ def load_data(cfg: dict, logger: logging.Logger) -> pd.DataFrame:
         logger.info(f"数据形状: {df.shape}")
         return df
     else:
-        logger.warning(f"数据文件不存在: {data_path}，使用合成演示数据")
-        return _generate_synthetic_data(cfg, logger)
+        if cfg.get("allow_synthetic_demo", False):
+            logger.warning(
+                f"数据文件不存在: {data_path}，使用合成演示数据（allow_synthetic_demo=true）"
+            )
+            return _generate_synthetic_data(cfg, logger)
+        raise FileNotFoundError(
+            f"数据文件不存在: {data_path}。"
+            "若需使用合成演示数据，请在配置中设置 allow_synthetic_demo: true"
+        )
 
 
 def _generate_synthetic_data(cfg: dict, logger: logging.Logger) -> pd.DataFrame:
@@ -242,8 +250,16 @@ def infer_variable_roles(
     time_col: Optional[str] = cfg.get("time_col")
     dag_path = Path(cfg.get("dag_path", ""))
 
-    # 检测并排除 datetime 类型列（即使 time_col 未配置）
-    datetime_cols = set(df.select_dtypes(include=["datetime64", "object"]).columns.tolist())
+    # Bug 2 修复：operation_vars 留空时发出警告，当前版本不支持真实数据下自动推断
+    if not op_vars:
+        logger.warning(
+            "operation_vars 为空，因果输入模型（causal_input）和 DML 残差模型"
+            "（dml_residual）中 A 列将为空，请在配置中手工填写操作变量名。"
+        )
+
+    # Bug 3 修复：只自动跳过 datetime 类型列；object 列保留在角色表并标为 excluded
+    datetime_cols = set(df.select_dtypes(include=["datetime64"]).columns.tolist())
+    object_cols = set(df.select_dtypes(include=["object"]).columns.tolist()) - datetime_cols
 
     all_cols = [c for c in df.columns if c != time_col and c not in datetime_cols]
 
@@ -273,6 +289,11 @@ def infer_variable_roles(
 
         if col in op_vars:
             rows.append({"variable": col, "role": "operation_A", "reason": "人工指定操作变量"})
+            continue
+
+        # Bug 3 修复：object 列明确标为 excluded，不再无声消失
+        if col in object_cols:
+            rows.append({"variable": col, "role": "excluded", "reason": "非数值列，未参与建模"})
             continue
 
         if _contains_leak_keyword(col):
@@ -1160,18 +1181,11 @@ def main():
     all_feature_cols = [c for c in df.columns if c not in skip_cols
                         and c not in excluded]
 
-    logger.info(f"全部特征列 ({len(all_feature_cols)}): {all_feature_cols}")
-    logger.info(f"窗口长度: {cfg['window_size']}")
-    logger.info(f"数据切分方式: train={cfg['train_ratio']}, val={cfg['val_ratio']}, test={cfg['test_ratio']}")
-
     # ── 4. 数据切分 ──────────────────────────────────────────────────────────
     # 只保留数值列用于建模
     model_cols = [c for c in [target_col] + all_feature_cols if c in df.columns]
     if time_col and time_col in df.columns:
         model_cols = [time_col] + model_cols
-    df_model = df[[c for c in model_cols if c in df.columns]].select_dtypes(include=[np.number, "datetime64"])
-
-    # 再次只保留数值列
     df_model = df[[c for c in model_cols if c in df.columns]]
     num_cols_only = df_model.select_dtypes(include=np.number).columns.tolist()
     df_model = df_model[num_cols_only]
@@ -1181,6 +1195,11 @@ def main():
     a_cols = [c for c in a_cols if c in df_model.columns]
     c_cols = [c for c in c_cols if c in df_model.columns]
     s_cols = [c for c in s_cols if c in df_model.columns]
+
+    # Bug 4 修复：在数值过滤完成后再打印全部特征列，保证与实际建模列一致
+    logger.info(f"全部特征列（建模用数值列）({len(all_feature_cols)}): {all_feature_cols}")
+    logger.info(f"窗口长度: {cfg['window_size']}")
+    logger.info(f"数据切分方式: train={cfg['train_ratio']}, val={cfg['val_ratio']}, test={cfg['test_ratio']}")
 
     if target_col not in df_model.columns:
         logger.error(f"目标列 '{target_col}' 不在数值列中，退出")
