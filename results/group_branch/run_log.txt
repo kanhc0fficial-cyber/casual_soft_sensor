@@ -1,0 +1,60 @@
+2026-05-15 05:35:20,271 | INFO | ============================================================
+2026-05-15 05:35:20,271 | INFO | 工艺因果组分支软测量  train_group_branch.py
+2026-05-15 05:35:20,271 | INFO | ============================================================
+2026-05-15 05:35:20,271 | INFO | 配置文件: configs/group_branch.yaml
+2026-05-15 05:35:20,272 | WARNING | 数据文件不存在: data/modeling_dataset_xin2_final.parquet，使用合成演示数据（allow_synthetic_demo=true）
+2026-05-15 05:35:20,274 | INFO | 合成数据形状: (2000, 9)，列: ['timestamp', 'env_temperature', 'env_feed_rate', 'op_reagent_flow', 'op_air_flow', 'state_foam_thickness', 'state_pH_value', 'state_level_sensor', 'concentrate_grade']
+2026-05-15 05:35:20,288 | INFO | 预处理后数据形状: (2000, 9)
+2026-05-15 05:35:20,288 | INFO | 特征列数量: 7
+2026-05-15 05:35:20,288 | INFO | 特征列-索引对照表:
+2026-05-15 05:35:20,288 | INFO |   [  0] env_temperature
+2026-05-15 05:35:20,288 | INFO |   [  1] env_feed_rate
+2026-05-15 05:35:20,288 | INFO |   [  2] op_reagent_flow
+2026-05-15 05:35:20,288 | INFO |   [  3] op_air_flow
+2026-05-15 05:35:20,288 | INFO |   [  4] state_foam_thickness
+2026-05-15 05:35:20,288 | INFO |   [  5] state_pH_value
+2026-05-15 05:35:20,288 | INFO |   [  6] state_level_sensor
+2026-05-15 05:35:20,289 | INFO | ----------------------------------------
+2026-05-15 05:35:20,289 | INFO | 变量分组配置：
+2026-05-15 05:35:20,289 | INFO |   group=feed, indices=[0, 1], cols=['env_temperature', 'env_feed_rate'], branch_type=gru, hidden_dim=32
+2026-05-15 05:35:20,289 | INFO |   group=reagent, indices=[2, 3], cols=['op_reagent_flow', 'op_air_flow'], branch_type=gru, hidden_dim=32
+2026-05-15 05:35:20,289 | INFO |   group=state, indices=[4, 5, 6], cols=['state_foam_thickness', 'state_pH_value', 'state_level_sensor'], branch_type=gru, hidden_dim=32
+2026-05-15 05:35:20,289 | INFO | 模型配置: use_gate=True, trainable_gate=True, gate_init=0.5, output_bias=True
+2026-05-15 05:35:20,290 | INFO | 数据切分: train=1400, val=300, test=300
+2026-05-15 05:35:20,916 | INFO | 窗口化后样本数: train=1389, val=289, test=289
+2026-05-15 05:35:20,918 | INFO | 模型参数总量: 10,567
+2026-05-15 05:35:20,918 | INFO | ============================================================
+2026-05-15 05:35:20,918 | INFO | 开始训练...
+2026-05-15 05:35:20,918 | INFO | 训练设备: cpu
+2026-05-15 05:35:20,918 | INFO | 损失函数: MSE
+2026-05-15 05:35:22,110 | INFO | Epoch   1/50 | train_loss=0.58040 | val_loss=0.31583 | gates=[feed=0.504, reagent=0.506, state=0.506]
+2026-05-15 05:35:24,339 | INFO | Epoch  10/50 | train_loss=0.02915 | val_loss=0.02739 | gates=[feed=0.508, reagent=0.516, state=0.514]
+2026-05-15 05:35:26,816 | INFO | Epoch  20/50 | train_loss=0.01691 | val_loss=0.01714 | gates=[feed=0.508, reagent=0.527, state=0.515]
+2026-05-15 05:35:29,245 | INFO | Epoch  30/50 | train_loss=0.01552 | val_loss=0.01675 | gates=[feed=0.508, reagent=0.531, state=0.514]
+2026-05-15 05:35:31,739 | INFO | Epoch  40/50 | train_loss=0.01513 | val_loss=0.01556 | gates=[feed=0.509, reagent=0.534, state=0.513]
+2026-05-15 05:35:34,178 | INFO | Epoch  50/50 | train_loss=0.01485 | val_loss=0.01547 | gates=[feed=0.510, reagent=0.535, state=0.513]
+2026-05-15 05:35:34,179 | INFO | 最终 gate 值：
+2026-05-15 05:35:34,179 | INFO |   feed: 0.5093
+2026-05-15 05:35:34,179 | INFO |   reagent: 0.5351
+2026-05-15 05:35:34,179 | INFO |   state: 0.5128
+2026-05-15 05:35:34,183 | INFO | ============================================================
+2026-05-15 05:35:34,183 | INFO | 保存结果...
+2026-05-15 05:35:34,197 | INFO | Test: MAE=0.2554, RMSE=0.3215, R2=0.9303
+2026-05-15 05:35:34,202 | INFO | 已保存: results/group_branch/group_branch_metrics.csv
+2026-05-15 05:35:34,203 | INFO | 已保存: results/group_branch/group_branch_gates.csv
+2026-05-15 05:35:34,204 | INFO | 已保存: results/group_branch/group_branch_contributions.csv
+2026-05-15 05:35:34,206 | INFO | 
+分支贡献：
+  group     gate  mean_branch_output  mean_abs_contribution
+   feed 0.509323            0.411370               0.209520
+reagent 0.535061            0.517259               0.324220
+  state 0.512780            0.122405               0.147218
+2026-05-15 05:35:34,209 | INFO | 已保存: results/group_branch/predictions_test.csv
+2026-05-15 05:35:34,209 | INFO | ============================================================
+2026-05-15 05:35:34,209 | INFO | 运行完成。输出文件：
+2026-05-15 05:35:34,210 | INFO |   results/group_branch/group_branch_contributions.csv
+2026-05-15 05:35:34,210 | INFO |   results/group_branch/group_branch_gates.csv
+2026-05-15 05:35:34,210 | INFO |   results/group_branch/group_branch_metrics.csv
+2026-05-15 05:35:34,210 | INFO |   results/group_branch/predictions_test.csv
+2026-05-15 05:35:34,210 | INFO |   results/group_branch/run_log.txt
+2026-05-15 05:35:34,210 | INFO | ============================================================
