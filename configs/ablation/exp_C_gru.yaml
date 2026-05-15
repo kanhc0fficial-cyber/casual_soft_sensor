@@ -1,0 +1,48 @@
+# ==============================================================================
+# 消融实验 C：GroupBranch-GRU（基准分组，可训练 gate）
+# 用法：python scripts/train_group_branch.py --config configs/ablation/exp_C_gru.yaml
+# ==============================================================================
+
+data_path:   "data/modeling_dataset_xin2_final.parquet"
+output_dir:  "results/ablation/exp_C_gru"
+target_col:  "concentrate_grade"
+time_col:    null
+exclude_cols: []
+
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+window_size: 12
+
+epochs:     50
+batch_size: 64
+lr:         0.001
+patience:   8
+loss:       "mse"
+
+random_seed: 42
+allow_synthetic_demo: true
+allow_feature_overlap: false
+warn_unused_features:  true
+
+groups:
+  feed:
+    indices: [0, 1]
+    branch_type: "gru"
+    hidden_dim: 32
+  reagent:
+    indices: [2, 3]
+    branch_type: "gru"
+    hidden_dim: 32
+  state:
+    indices: [4, 5, 6]
+    branch_type: "gru"
+    hidden_dim: 32
+
+model:
+  name: "causal_group_branch"
+  use_gate:       true
+  trainable_gate: true
+  gate_init:      0.5
+  output_bias:    true
+  loss:           "mse"

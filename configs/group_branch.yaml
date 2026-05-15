@@ -1,0 +1,85 @@
+# ==============================================================================
+# 配置文件：工艺因果组分支软测量模型 (Process-Causal Group Branch Soft Sensor)
+# 用法：python scripts/train_group_branch.py --config configs/group_branch.yaml
+#
+# 修改分组方案：只需修改下方 groups 段，无需改动 Python 代码。
+# 支持任意 group 名称、任意 group 数量、任意特征索引列表。
+# ==============================================================================
+
+# ── 数据路径 ──────────────────────────────────────────────────────────────────
+data_path: "data/modeling_dataset_xin2_final.parquet"
+output_dir: "results/group_branch"
+
+# ── 目标变量与时间列 ───────────────────────────────────────────────────────────
+target_col: "concentrate_grade"
+time_col: null             # 若为 null，按行序排列
+
+# ── 排除列（不参与建模的列，如 ID、标签衍生列等） ────────────────────────────
+exclude_cols: []
+
+# ── 数据切分比例（总计须为 1.0） ─────────────────────────────────────────────
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+
+# ── 滑动窗口大小 ──────────────────────────────────────────────────────────────
+window_size: 12
+
+# ── 训练超参 ──────────────────────────────────────────────────────────────────
+epochs:     50
+batch_size: 64
+lr:         0.001
+patience:   8
+loss:       "mse"          # "mse" 或 "mae"
+
+# ── 随机种子 ──────────────────────────────────────────────────────────────────
+random_seed: 42
+
+# ── 演示模式（默认关闭） ──────────────────────────────────────────────────────
+# 设为 true 时，若 data_path 文件不存在，脚本自动使用合成演示数据运行。
+allow_synthetic_demo: true
+
+# ── 特征重叠与未使用特征检查 ──────────────────────────────────────────────────
+# allow_feature_overlap: 同一特征索引是否允许出现在多个 group（默认 false）
+# warn_unused_features:  有特征未被任何 group 覆盖时是否发出 warning（默认 true）
+allow_feature_overlap: false
+warn_unused_features:  true
+
+# ── 变量分组配置 ───────────────────────────────────────────────────────────────
+# indices 是特征列在预处理后数据中的位置索引（从 0 开始）。
+# 训练脚本启动时会打印"特征列-索引"对照表，便于确认。
+#
+# 注意：以下索引对应合成演示数据的 7 个特征列（顺序如下）：
+#   0: env_temperature
+#   1: env_feed_rate
+#   2: op_reagent_flow
+#   3: op_air_flow
+#   4: state_foam_thickness
+#   5: state_pH_value
+#   6: state_level_sensor
+#
+# 若使用真实数据，请根据脚本打印的列序重新填写 indices。
+groups:
+  feed:
+    indices: [0, 1]
+    branch_type: "gru"
+    hidden_dim: 32
+
+  reagent:
+    indices: [2, 3]
+    branch_type: "gru"
+    hidden_dim: 32
+
+  state:
+    indices: [4, 5, 6]
+    branch_type: "gru"
+    hidden_dim: 32
+
+# ── 模型配置 ──────────────────────────────────────────────────────────────────
+model:
+  name: "causal_group_branch"
+  use_gate:       true      # 是否启用门控
+  trainable_gate: true      # 门控是否可训练（false 则固定为 gate_init）
+  gate_init:      0.5       # 门控初始值（范围 0~1，trainable_gate=true 时作为初始化参考）
+  output_bias:    true      # 是否在最终求和后加一个可训练偏置
+  loss:           "mse"     # 损失函数：mse | mae

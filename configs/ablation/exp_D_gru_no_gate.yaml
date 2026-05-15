@@ -1,0 +1,48 @@
+# ==============================================================================
+# 消融实验 D：GroupBranch-GRU without gate（所有分支直接相加，use_gate=false）
+# 用法：python scripts/train_group_branch.py --config configs/ablation/exp_D_gru_no_gate.yaml
+# ==============================================================================
+
+data_path:   "data/modeling_dataset_xin2_final.parquet"
+output_dir:  "results/ablation/exp_D_gru_no_gate"
+target_col:  "concentrate_grade"
+time_col:    null
+exclude_cols: []
+
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+window_size: 12
+
+epochs:     50
+batch_size: 64
+lr:         0.001
+patience:   8
+loss:       "mse"
+
+random_seed: 42
+allow_synthetic_demo: true
+allow_feature_overlap: false
+warn_unused_features:  true
+
+groups:
+  feed:
+    indices: [0, 1]
+    branch_type: "gru"
+    hidden_dim: 32
+  reagent:
+    indices: [2, 3]
+    branch_type: "gru"
+    hidden_dim: 32
+  state:
+    indices: [4, 5, 6]
+    branch_type: "gru"
+    hidden_dim: 32
+
+model:
+  name: "causal_group_branch"
+  use_gate:       false     # 不使用 gate，所有分支直接相加
+  trainable_gate: false
+  gate_init:      1.0
+  output_bias:    true
+  loss:           "mse"

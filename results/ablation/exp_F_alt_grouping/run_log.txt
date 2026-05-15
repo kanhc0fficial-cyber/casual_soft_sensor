@@ -1,0 +1,57 @@
+2026-05-15 05:37:10,271 | INFO | ============================================================
+2026-05-15 05:37:10,271 | INFO | 工艺因果组分支软测量  train_group_branch.py
+2026-05-15 05:37:10,271 | INFO | ============================================================
+2026-05-15 05:37:10,271 | INFO | 配置文件: configs/ablation/exp_F_alt_grouping.yaml
+2026-05-15 05:37:10,272 | WARNING | 数据文件不存在: data/modeling_dataset_xin2_final.parquet，使用合成演示数据（allow_synthetic_demo=true）
+2026-05-15 05:37:10,273 | INFO | 合成数据形状: (2000, 9)，列: ['timestamp', 'env_temperature', 'env_feed_rate', 'op_reagent_flow', 'op_air_flow', 'state_foam_thickness', 'state_pH_value', 'state_level_sensor', 'concentrate_grade']
+2026-05-15 05:37:10,287 | INFO | 预处理后数据形状: (2000, 9)
+2026-05-15 05:37:10,287 | INFO | 特征列数量: 7
+2026-05-15 05:37:10,287 | INFO | 特征列-索引对照表:
+2026-05-15 05:37:10,287 | INFO |   [  0] env_temperature
+2026-05-15 05:37:10,287 | INFO |   [  1] env_feed_rate
+2026-05-15 05:37:10,287 | INFO |   [  2] op_reagent_flow
+2026-05-15 05:37:10,287 | INFO |   [  3] op_air_flow
+2026-05-15 05:37:10,287 | INFO |   [  4] state_foam_thickness
+2026-05-15 05:37:10,287 | INFO |   [  5] state_pH_value
+2026-05-15 05:37:10,288 | INFO |   [  6] state_level_sensor
+2026-05-15 05:37:10,288 | INFO | ----------------------------------------
+2026-05-15 05:37:10,288 | INFO | 变量分组配置：
+2026-05-15 05:37:10,288 | INFO |   group=process, indices=[0, 1, 2, 3], cols=['env_temperature', 'env_feed_rate', 'op_reagent_flow', 'op_air_flow'], branch_type=gru, hidden_dim=32
+2026-05-15 05:37:10,288 | INFO |   group=state, indices=[4, 5, 6], cols=['state_foam_thickness', 'state_pH_value', 'state_level_sensor'], branch_type=gru, hidden_dim=32
+2026-05-15 05:37:10,288 | INFO | 模型配置: use_gate=True, trainable_gate=True, gate_init=0.5, output_bias=True
+2026-05-15 05:37:10,289 | INFO | 数据切分: train=1400, val=300, test=300
+2026-05-15 05:37:10,910 | INFO | 窗口化后样本数: train=1389, val=289, test=289
+2026-05-15 05:37:10,911 | INFO | 模型参数总量: 7,269
+2026-05-15 05:37:10,912 | INFO | ============================================================
+2026-05-15 05:37:10,912 | INFO | 开始训练...
+2026-05-15 05:37:10,912 | INFO | 训练设备: cpu
+2026-05-15 05:37:10,912 | INFO | 损失函数: MSE
+2026-05-15 05:37:11,968 | INFO | Epoch   1/50 | train_loss=0.63170 | val_loss=0.41295 | gates=[process=0.506, state=0.506]
+2026-05-15 05:37:13,459 | INFO | Epoch  10/50 | train_loss=0.03923 | val_loss=0.03742 | gates=[process=0.512, state=0.516]
+2026-05-15 05:37:15,134 | INFO | Epoch  20/50 | train_loss=0.02156 | val_loss=0.02119 | gates=[process=0.520, state=0.521]
+2026-05-15 05:37:16,827 | INFO | Epoch  30/50 | train_loss=0.01748 | val_loss=0.01757 | gates=[process=0.526, state=0.519]
+2026-05-15 05:37:18,494 | INFO | Epoch  40/50 | train_loss=0.01563 | val_loss=0.01663 | gates=[process=0.530, state=0.516]
+2026-05-15 05:37:20,131 | INFO | Epoch  50/50 | train_loss=0.01510 | val_loss=0.01568 | gates=[process=0.532, state=0.515]
+2026-05-15 05:37:20,132 | INFO | 最终 gate 值：
+2026-05-15 05:37:20,132 | INFO |   process: 0.5324
+2026-05-15 05:37:20,132 | INFO |   state: 0.5152
+2026-05-15 05:37:20,135 | INFO | ============================================================
+2026-05-15 05:37:20,136 | INFO | 保存结果...
+2026-05-15 05:37:20,149 | INFO | Test: MAE=0.2558, RMSE=0.3235, R2=0.9294
+2026-05-15 05:37:20,152 | INFO | 已保存: results/ablation/exp_F_alt_grouping/group_branch_metrics.csv
+2026-05-15 05:37:20,153 | INFO | 已保存: results/ablation/exp_F_alt_grouping/group_branch_gates.csv
+2026-05-15 05:37:20,154 | INFO | 已保存: results/ablation/exp_F_alt_grouping/group_branch_contributions.csv
+2026-05-15 05:37:20,155 | INFO | 
+分支贡献：
+  group     gate  mean_branch_output  mean_abs_contribution
+process 0.532397            0.851586               0.477226
+  state 0.515248            0.209795               0.175621
+2026-05-15 05:37:20,158 | INFO | 已保存: results/ablation/exp_F_alt_grouping/predictions_test.csv
+2026-05-15 05:37:20,158 | INFO | ============================================================
+2026-05-15 05:37:20,158 | INFO | 运行完成。输出文件：
+2026-05-15 05:37:20,158 | INFO |   results/ablation/exp_F_alt_grouping/group_branch_contributions.csv
+2026-05-15 05:37:20,158 | INFO |   results/ablation/exp_F_alt_grouping/group_branch_gates.csv
+2026-05-15 05:37:20,158 | INFO |   results/ablation/exp_F_alt_grouping/group_branch_metrics.csv
+2026-05-15 05:37:20,158 | INFO |   results/ablation/exp_F_alt_grouping/predictions_test.csv
+2026-05-15 05:37:20,159 | INFO |   results/ablation/exp_F_alt_grouping/run_log.txt
+2026-05-15 05:37:20,159 | INFO | ============================================================

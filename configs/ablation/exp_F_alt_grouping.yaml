@@ -1,0 +1,46 @@
+# ==============================================================================
+# 消融实验 F：不同分组方案示例 — 两组方案（feed+reagent 合并为一组）
+# 展示如何通过仅更换配置文件改变分组方案，无需修改 Python 代码。
+# 用法：python scripts/train_group_branch.py --config configs/ablation/exp_F_alt_grouping.yaml
+# ==============================================================================
+
+data_path:   "data/modeling_dataset_xin2_final.parquet"
+output_dir:  "results/ablation/exp_F_alt_grouping"
+target_col:  "concentrate_grade"
+time_col:    null
+exclude_cols: []
+
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+window_size: 12
+
+epochs:     50
+batch_size: 64
+lr:         0.001
+patience:   8
+loss:       "mse"
+
+random_seed: 42
+allow_synthetic_demo: true
+allow_feature_overlap: false
+warn_unused_features:  true
+
+# 本方案将 feed + reagent 合并为 "process" 组，只保留两个组
+groups:
+  process:
+    indices: [0, 1, 2, 3]   # env_temperature, env_feed_rate, op_reagent_flow, op_air_flow
+    branch_type: "gru"
+    hidden_dim: 32
+  state:
+    indices: [4, 5, 6]      # state_foam_thickness, state_pH_value, state_level_sensor
+    branch_type: "gru"
+    hidden_dim: 32
+
+model:
+  name: "causal_group_branch"
+  use_gate:       true
+  trainable_gate: true
+  gate_init:      0.5
+  output_bias:    true
+  loss:           "mse"
