@@ -24,7 +24,7 @@
 ## Bug 1 — `test_ratio` 配置项被静默忽略
 
 - **严重级别**：中
-- **状态**：⚠️ 未修复（待确认是否符合设计意图）
+- **状态**：✅ 已修复
 - **位置**：`scripts/train_group_branch.py:194–203`
 - **对应测试**：`TestSplitData::test_test_ratio_actually_ignored`
 
@@ -71,7 +71,7 @@ n_train = n - n_val - n_test   # 或也用 int()，但要保证三段不重叠
 ## Bug 2 — `make_windows` 在 `window_size > len(data)` 时静默返回空数组
 
 - **严重级别**：高
-- **状态**：⚠️ 未修复
+- **状态**：✅ 已修复
 - **位置**：`scripts/train_group_branch.py:207–215`
 - **对应测试**：`TestMakeWindows::test_window_larger_than_data_returns_empty`
 
@@ -114,7 +114,7 @@ def make_windows(X, y, window_size):
 ## Bug 3 — `train_ratio + val_ratio + test_ratio` 之和未做合理性校验
 
 - **严重级别**：中
-- **状态**：⚠️ 未修复
+- **状态**：✅ 已修复
 - **位置**：`scripts/train_group_branch.py:194–203`（`split_data`）；`train_group_branch.py:74–99`（`load_config`）
 - **对应测试**：`TestSplitData::test_ratios_not_validated`
 
@@ -147,7 +147,7 @@ if not math.isclose(total, 1.0, abs_tol=1e-4):
 ## Bug 4 — `preprocess` 中离群值裁剪方法变量命名与标准 IQR 方法混淆
 
 - **严重级别**：低（方法选择问题，不影响运行，但影响效果）
-- **状态**：⚠️ 未修复（命名误导 + 裁剪效果近乎无效）
+- **状态**：✅ 已修复
 - **位置**：`scripts/train_group_branch.py:180–186`
 
 ### 现象
@@ -182,7 +182,7 @@ if iqr > 0:
 ## Bug 5 — TCN 分支使用对称 padding，不是真正的因果卷积
 
 - **严重级别**：低（单步预测场景下无影响，但时间语义场景下存在未来信息泄漏）
-- **状态**：⚠️ 未修复
+- **状态**：✅ 已修复
 - **位置**：`src/models/group_branch.py:78–90`
 
 ### 现象
@@ -224,11 +224,11 @@ def forward(self, x):
 
 | 编号 | 标题 | 严重级别 | 涉及文件 | 状态 |
 |------|------|----------|----------|------|
-| Bug 1 | `test_ratio` 配置被静默忽略 | 中 | `train_group_branch.py` | ⚠️ 未修复 |
-| Bug 2 | `make_windows` window>data 时静默空数组 → 下游崩溃 | 高 | `train_group_branch.py` | ⚠️ 未修复 |
-| Bug 3 | ratio 三者之和无校验 | 中 | `train_group_branch.py` | ⚠️ 未修复 |
-| Bug 4 | IQR 离群值裁剪变量名混淆 + 裁剪近乎无效 | 低 | `train_group_branch.py` | ⚠️ 未修复 |
-| Bug 5 | TCN 对称 padding 非标准因果卷积实现 | 低 | `group_branch.py` | ⚠️ 未修复 |
+| Bug 1 | `test_ratio` 配置被静默忽略 | 中 | `train_group_branch.py` | ✅ 已修复 |
+| Bug 2 | `make_windows` window>data 时静默空数组 → 下游崩溃 | 高 | `train_group_branch.py` | ✅ 已修复 |
+| Bug 3 | ratio 三者之和无校验 | 中 | `train_group_branch.py` | ✅ 已修复 |
+| Bug 4 | IQR 离群值裁剪变量名混淆 + 裁剪近乎无效 | 低 | `train_group_branch.py` | ✅ 已修复 |
+| Bug 5 | TCN 对称 padding 非标准因果卷积实现 | 低 | `group_branch.py` | ✅ 已修复 |
 
 > **注意**：以上 bugs 均经过测试文件 `tests/test_group_branch.py` 中对应测试用例的行为验证，
 > 修复后请重新运行 `pytest tests/test_group_branch.py -v` 确认通过。

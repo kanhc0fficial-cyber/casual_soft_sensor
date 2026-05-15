@@ -21,6 +21,7 @@ from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 # ─── 分支模块 ──────────────────────────────────────────────────────────────────
@@ -74,20 +75,22 @@ class GroupTCNBranch(nn.Module):
 
     def __init__(self, input_size: int, hidden_dim: int = 32) -> None:
         super().__init__()
-        # padding=kernel_size-1 保证因果性（不看未来）
-        self.conv1 = nn.Conv1d(input_size, hidden_dim, kernel_size=3, padding=2)
-        self.conv2 = nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, padding=2)
+        # padding=0：在 forward 中使用显式左侧填充（kernel_size-1=2），保证因果性
+        self.conv1 = nn.Conv1d(input_size, hidden_dim, kernel_size=3, padding=0)
+        self.conv2 = nn.Conv1d(hidden_dim, hidden_dim, kernel_size=3, padding=0)
         self.fc = nn.Linear(hidden_dim, 1)
         self.relu = nn.ReLU()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [batch, window, feat] -> [batch, feat, window]
         x = x.permute(0, 2, 1)
-        # causal conv: trim right-padded time steps
-        x = self.relu(self.conv1(x)[:, :, :-2])   # [batch, hidden, window]
-        x = self.relu(self.conv2(x)[:, :, :-2])   # [batch, hidden, window']
-        x = x[:, :, -1]                            # [batch, hidden] 取最后时间步
-        return self.fc(x)                          # [batch, 1]
+        # 显式左侧填充 kernel_size-1=2，不填充右侧，保证卷积只看过去的时间步
+        x = F.pad(x, (2, 0))
+        x = self.relu(self.conv1(x))   # [batch, hidden, window]
+        x = F.pad(x, (2, 0))
+        x = self.relu(self.conv2(x))   # [batch, hidden, window]
+        x = x[:, :, -1]               # [batch, hidden] 取最后时间步
+        return self.fc(x)              # [batch, 1]
 
 
 # ─── 工厂函数 ──────────────────────────────────────────────────────────────────

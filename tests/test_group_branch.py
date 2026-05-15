@@ -379,20 +379,12 @@ class TestMakeWindows:
         Xw, yw = make_windows(X, y, window_size=5)
         assert len(Xw) == 1
 
-    # ── BUG-2: window_size > len(y) 时静默返回空数组 ──────────────────────────
-    def test_window_larger_than_data_returns_empty(self):
-        """
-        BUG-2（文档化）：当 window_size > len(y) 时，make_windows 静默返回空数组，
-        不会抛出异常，也不会给出任何警告。
-        后续的 DataLoader 或 epoch_loss /= len(yw_tr) 会以 ZeroDivisionError 崩溃，
-        错误信息与真实原因相距甚远。
-        本测试记录当前行为（空数组），以便将来修复时可感知。
-        """
+    def test_window_larger_than_data_raises(self):
+        """Bug 2 已修复：window_size > len(y) 时应抛出 ValueError，给出明确错误信息。"""
         X = np.ones((3, 2), dtype=np.float32)
         y = np.zeros(3, dtype=np.float32)
-        Xw, yw = make_windows(X, y, window_size=10)
-        # 当前行为：返回空数组，但应当报错或警告
-        assert len(Xw) == 0, "当前行为：window > data 时返回空数组（已知 bug，应加校验）"
+        with pytest.raises(ValueError, match="window_size=10 大于数据长度 3"):
+            make_windows(X, y, window_size=10)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -427,46 +419,37 @@ class TestSplitData:
         cfg = {"train_ratio": 0.70, "val_ratio": 0.15, "test_ratio": 0.15}
         tr, vl, te = split_data(sample_df, cfg, dummy_logger)
         total = len(tr) + len(vl) + len(te)
-        assert total == len(sample_df), "三段之和应等于原始数据行数（test_ratio 被忽略时可能有差）"
+        assert total == len(sample_df), "三段之和应等于原始数据行数"
 
-    # ── BUG-1: test_ratio 配置被忽略 ─────────────────────────────────────────
-    def test_test_ratio_actually_ignored(self, dummy_logger):
-        """
-        BUG-1（文档化）：test_df = df.iloc[n_train + n_val:] 不使用 test_ratio，
-        实际 test 大小 = n - int(n*train) - int(n*val)，与配置的 test_ratio 无关。
-        """
+    def test_test_ratio_is_respected(self, dummy_logger):
+        """Bug 1 已修复：test_ratio 应被正确使用，test 集大小 = int(n * test_ratio)。"""
         import pandas as pd
         n = 1000
         df = pd.DataFrame({"x": range(n)})
-        cfg = {"train_ratio": 0.70, "val_ratio": 0.15, "test_ratio": 0.05}  # test_ratio 故意设小
+        cfg = {"train_ratio": 0.70, "val_ratio": 0.15, "test_ratio": 0.15}
         tr, vl, te = split_data(df, cfg, dummy_logger)
-        expected_test_by_ratio = int(n * 0.05)  # = 50（如果配置被遵守）
-        actual_test = len(te)
-        # 实际是 1000 - 700 - 150 = 150，而非配置的 50
-        assert actual_test != expected_test_by_ratio, (
-            "BUG-1：test_ratio 没有被使用，实际 test 集大小与配置不符"
-        )
+        # n_test = int(1000 * 0.15) = 150，n_val = 150，n_train = 1000-150-150 = 700
+        assert len(te) == 150
+        assert len(vl) == 150
+        assert len(tr) == 700
 
-    # ── BUG-3: ratio 之和未校验 ────────────────────────────────────────────────
-    def test_ratios_not_validated(self, dummy_logger):
-        """
-        BUG-3（文档化）：train_ratio + val_ratio + test_ratio 之和未做校验，
-        用户填错配置（如三者之和 > 1.0）不会报错，只是静默产出错误切分。
-        """
+    def test_test_ratio_small_is_respected(self, dummy_logger):
+        """Bug 1 已修复：test_ratio=0.05 时，test 集应为约 50 行，而非 150。"""
+        import pandas as pd
+        n = 1000
+        df = pd.DataFrame({"x": range(n)})
+        cfg = {"train_ratio": 0.80, "val_ratio": 0.15, "test_ratio": 0.05}
+        tr, vl, te = split_data(df, cfg, dummy_logger)
+        assert len(te) == int(n * 0.05)  # 50
+
+    def test_ratios_must_sum_to_one(self, dummy_logger):
+        """Bug 3 已修复：train/val/test ratio 之和不为 1.0 时应抛出 ValueError。"""
         import pandas as pd
         n = 100
         df = pd.DataFrame({"x": range(n)})
-        # 三者之和 = 1.6，明显错误，但不会报错
         cfg = {"train_ratio": 0.80, "val_ratio": 0.50, "test_ratio": 0.30}
-        try:
-            tr, vl, te = split_data(df, cfg, dummy_logger)
-            # val 超出总行数时，iloc 会静默截断，不抛异常
-            # BUG：应该在这里抛 ValueError，但当前代码没有
-            assert len(tr) + len(vl) + len(te) <= n, (
-                "BUG-3：ratio 之和超过 1.0 时，代码不报错（应加校验）"
-            )
-        except Exception:
-            pass  # 如果已修复则此处会捕获到异常
+        with pytest.raises(ValueError, match="之和应为 1\\.0"):
+            split_data(df, cfg, dummy_logger)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

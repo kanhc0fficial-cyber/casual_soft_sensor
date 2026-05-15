@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import os
 import random
 import sys
@@ -180,10 +181,10 @@ def preprocess(df: pd.DataFrame, cfg: dict, logger: logging.Logger) -> pd.DataFr
     for col in num_cols:
         if col == target_col:
             continue
-        q1, q3 = df[col].quantile(0.01), df[col].quantile(0.99)
+        q1, q3 = df[col].quantile(0.25), df[col].quantile(0.75)
         iqr = q3 - q1
         if iqr > 0:
-            df[col] = df[col].clip(q1 - 3 * iqr, q3 + 3 * iqr)
+            df[col] = df[col].clip(q1 - 1.5 * iqr, q3 + 1.5 * iqr)
 
     logger.info(f"预处理后数据形状: {df.shape}")
     return df
@@ -194,9 +195,15 @@ def preprocess(df: pd.DataFrame, cfg: dict, logger: logging.Logger) -> pd.DataFr
 def split_data(
     df: pd.DataFrame, cfg: dict, logger: logging.Logger
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    total_ratio = cfg["train_ratio"] + cfg["val_ratio"] + cfg["test_ratio"]
+    if not math.isclose(total_ratio, 1.0, abs_tol=1e-4):
+        raise ValueError(
+            f"train_ratio + val_ratio + test_ratio 之和应为 1.0，当前为 {total_ratio:.4f}"
+        )
     n = len(df)
-    n_train = int(n * cfg["train_ratio"])
+    n_test = int(n * cfg["test_ratio"])
     n_val = int(n * cfg["val_ratio"])
+    n_train = n - n_val - n_test
     train_df = df.iloc[:n_train].copy()
     val_df = df.iloc[n_train: n_train + n_val].copy()
     test_df = df.iloc[n_train + n_val:].copy()
@@ -208,6 +215,11 @@ def make_windows(
     X: np.ndarray, y: np.ndarray, window_size: int
 ) -> Tuple[np.ndarray, np.ndarray]:
     """构造滑动窗口：X[i:i+w] -> y[i+w-1]"""
+    if window_size > len(y):
+        raise ValueError(
+            f"window_size={window_size} 大于数据长度 {len(y)}，无法构造任何窗口。"
+            "请减小 window_size 或增加数据量。"
+        )
     xs, ys = [], []
     for i in range(len(y) - window_size + 1):
         xs.append(X[i: i + window_size])
