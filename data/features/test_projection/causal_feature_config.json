@@ -1,0 +1,24 @@
+{
+  "target_node": "y_grade",
+  "target_variable": "y_grade",
+  "causal_parent_nodes": [
+    "fx_s1_jx_level",
+    "fx_s1_cx3_level",
+    "fx_s1_sx1_level"
+  ],
+  "causal_parent_variables": [
+    "fx_s1_jx_level",
+    "fx_s1_cx3_level",
+    "fx_s1_sx1_level"
+  ],
+  "ancestor_nodes": [
+    "fx_s1_cx3_level",
+    "fx_s1_sx1_level",
+    "fx_s1_jx_level",
+    "fx_s1_sx2_level",
+    "fx_s1_cx2_level",
+    "fx_s1_cx1_level"
+  ],
+  "excluded_descendant_nodes": [],
+  "dml_jobs_file": "dml_jobs.csv"
+}

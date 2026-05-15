@@ -1,0 +1,10 @@
+source,target,score,lag,edge_type
+fx_s1_cx1_level,fx_s1_cx2_level,0.9,0,directed
+fx_s1_cx2_level,fx_s1_cx3_level,0.85,0,directed
+fx_s1_cx3_level,fx_s1_sx1_level,0.8,1,directed
+fx_s1_cx3_level,fx_s1_sx2_level,0.75,1,directed
+fx_s1_sx1_level,fx_s1_jx_level,0.7,1,directed
+fx_s1_sx2_level,fx_s1_jx_level,0.65,1,directed
+fx_s1_cx3_level,y_grade,0.6,2,directed
+fx_s1_jx_level,y_grade,0.75,1,directed
+fx_s1_sx1_level,y_grade,0.55,2,directed

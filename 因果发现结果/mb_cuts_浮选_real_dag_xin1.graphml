@@ -1,0 +1,639 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d0" for="edge" attr.name="weight" attr.type="double"/>
+<graph edgedefault="directed"><node id="fx_nt1_motor_current"/>
+<node id="fx_nt1_underflow_density"/>
+<node id="fx_s1_cx1_froth_h"/>
+<node id="fx_s1_cx1_level"/>
+<node id="fx_s1_cx1_air_flow"/>
+<node id="fx_s1_cx2_froth_h"/>
+<node id="fx_s1_cx2_level"/>
+<node id="fx_s1_cx2_air_flow"/>
+<node id="fx_s1_cx3_froth_h"/>
+<node id="fx_s1_cx3_level"/>
+<node id="fx_s1_cx3_air_flow"/>
+<node id="fx_s1_sx1_froth_h"/>
+<node id="fx_s1_sx1_level"/>
+<node id="fx_s1_sx1_air_flow"/>
+<node id="fx_s1_sx2_froth_h"/>
+<node id="fx_s1_sx2_level"/>
+<node id="fx_s1_sx2_air_flow"/>
+<node id="fx_s1_sx3_froth_h"/>
+<node id="fx_s1_sx3_level"/>
+<node id="fx_s1_sx3_air_flow"/>
+<node id="fx_s1_jx_froth_h"/>
+<node id="fx_s1_jx_level"/>
+<node id="fx_s1_jx_air_flow"/>
+<node id="fx_s1_td_rough_freq"/>
+<node id="fx_s1_ph"/>
+<node id="fx_s1_tk1_temp"/>
+<node id="fx_s1_tk1_steam_sp"/>
+<node id="fx_s1_tk1_steam_fb"/>
+<node id="fx_s1_tk2_temp"/>
+<node id="fx_s1_tk2_steam_sp"/>
+<node id="fx_s1_tk2_steam_fb"/>
+<node id="fx_s1_tk3_temp"/>
+<node id="fx_s1_tk3_steam_sp"/>
+<node id="fx_s1_tk3_steam_fb"/>
+<node id="fx_s1_pool1_level"/>
+<node id="fx_s1_pool1_pump_freq"/>
+<node id="fx_s1_pool1_pump_curr"/>
+<node id="fx_s1_pool2_pump_freq"/>
+<node id="fx_s1_pool2_pump_curr"/>
+<node id="fx_s1_pool3_level"/>
+<node id="fx_s1_pool3_pump_freq"/>
+<node id="fx_s1_pool3_pump_curr"/>
+<node id="fx_blower1_pressure"/>
+<node id="fx_ah5_power"/>
+<node id="fx_s1_ft1701"/>
+<node id="fx_s1_ft1702"/>
+<node id="fx_s1_k6_level"/>
+<node id="y_grade"/>
+<edge source="fx_nt1_motor_current" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.024524126201868057</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.061481960117816925</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_cx2_level">
+  <data key="d0">0.04221877083182335</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_cx2_air_flow">
+  <data key="d0">0.03065611608326435</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_cx3_level">
+  <data key="d0">0.06916946917772293</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.02486548386514187</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_sx1_level">
+  <data key="d0">0.022770309820771217</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_sx1_air_flow">
+  <data key="d0">0.040199682116508484</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.13074147701263428</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_sx2_air_flow">
+  <data key="d0">0.021572625264525414</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_sx3_level">
+  <data key="d0">0.049686968326568604</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_jx_level">
+  <data key="d0">0.027552010491490364</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_ph">
+  <data key="d0">0.028346652165055275</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.05839366465806961</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.03623638674616814</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.06008787453174591</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.0566195547580719</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.10373537242412567</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.061513449996709824</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_blower1_pressure">
+  <data key="d0">0.021007215604186058</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="fx_s1_ft1701">
+  <data key="d0">0.02983136661350727</data>
+</edge>
+<edge source="fx_s1_cx1_froth_h" target="y_grade">
+  <data key="d0">0.041222453117370605</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_nt1_motor_current">
+  <data key="d0">0.17090627551078796</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.036534860730171204</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_cx2_level">
+  <data key="d0">0.5308752655982971</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_cx3_level">
+  <data key="d0">0.09644467383623123</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.054198771715164185</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_sx3_level">
+  <data key="d0">0.02388092875480652</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_jx_level">
+  <data key="d0">0.38986217975616455</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_ft1701">
+  <data key="d0">0.20187890529632568</data>
+</edge>
+<edge source="fx_s1_cx1_level" target="fx_s1_ft1702">
+  <data key="d0">0.24637481570243835</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_cx2_level">
+  <data key="d0">0.06640113145112991</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_cx3_level">
+  <data key="d0">0.026982495561242104</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.02063985913991928</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_sx1_level">
+  <data key="d0">0.06213763356208801</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.12767693400382996</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_sx2_level">
+  <data key="d0">0.03692913055419922</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_sx2_air_flow">
+  <data key="d0">0.027702556923031807</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_sx3_level">
+  <data key="d0">0.05830725282430649</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_jx_air_flow">
+  <data key="d0">0.025038275867700577</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk1_steam_sp">
+  <data key="d0">0.053451057523489</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.08661139756441116</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.027230408042669296</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.04982743412256241</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.04786581173539162</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.05291677638888359</data>
+</edge>
+<edge source="fx_s1_cx2_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.07120966911315918</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_cx3_level">
+  <data key="d0">0.627972424030304</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_jx_level">
+  <data key="d0">1.1725983619689941</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_td_rough_freq">
+  <data key="d0">0.02500912919640541</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_ft1701">
+  <data key="d0">0.21627405285835266</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_ft1702">
+  <data key="d0">0.13470755517482758</data>
+</edge>
+<edge source="fx_s1_cx2_air_flow" target="fx_s1_cx3_level">
+  <data key="d0">0.028612589463591576</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_cx2_level">
+  <data key="d0">0.09154466539621353</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_cx3_level">
+  <data key="d0">0.08915755152702332</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.023614995181560516</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_sx1_air_flow">
+  <data key="d0">0.032509248703718185</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_sx2_level">
+  <data key="d0">0.08195580542087555</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_jx_air_flow">
+  <data key="d0">0.0446498841047287</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk1_temp">
+  <data key="d0">0.03805709630250931</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.04704615846276283</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.06944549828767776</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.09841148555278778</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.0274914912879467</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.10279815644025803</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.05684254318475723</data>
+</edge>
+<edge source="fx_s1_cx3_froth_h" target="fx_blower1_pressure">
+  <data key="d0">0.0561157763004303</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.04089000076055527</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_cx3_level">
+  <data key="d0">0.03247098997235298</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_sx2_level">
+  <data key="d0">0.10045713931322098</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk1_temp">
+  <data key="d0">0.04057455062866211</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk1_steam_sp">
+  <data key="d0">0.040338803082704544</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.06286074966192245</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.059196583926677704</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.06505190581083298</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.044480111449956894</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.04323727637529373</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.115255206823349</data>
+</edge>
+<edge source="fx_s1_sx1_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.11193042993545532</data>
+</edge>
+<edge source="fx_s1_sx1_level" target="fx_s1_sx2_level">
+  <data key="d0">0.7986400127410889</data>
+</edge>
+<edge source="fx_s1_sx1_level" target="fx_s1_tk1_temp">
+  <data key="d0">0.02079492248594761</data>
+</edge>
+<edge source="fx_s1_sx1_air_flow" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.13329090178012848</data>
+</edge>
+<edge source="fx_s1_sx1_air_flow" target="fx_s1_sx3_froth_h">
+  <data key="d0">0.027503885328769684</data>
+</edge>
+<edge source="fx_s1_sx1_air_flow" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.020898083224892616</data>
+</edge>
+<edge source="fx_s1_sx1_air_flow" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.037366993725299835</data>
+</edge>
+<edge source="fx_s1_sx1_air_flow" target="fx_s1_ft1702">
+  <data key="d0">0.02023579552769661</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.030046910047531128</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_cx2_air_flow">
+  <data key="d0">0.03850681334733963</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.04699702560901642</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_sx3_level">
+  <data key="d0">0.02681094966828823</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_jx_air_flow">
+  <data key="d0">0.04536880925297737</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk1_temp">
+  <data key="d0">0.04515121504664421</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk1_steam_sp">
+  <data key="d0">0.0363583043217659</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.0842762440443039</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.041285861283540726</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.0806315615773201</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.08411142975091934</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.04307316616177559</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.04042879864573479</data>
+</edge>
+<edge source="fx_s1_sx2_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.03994583338499069</data>
+</edge>
+<edge source="fx_s1_sx2_level" target="fx_s1_sx3_level">
+  <data key="d0">0.7623763084411621</data>
+</edge>
+<edge source="fx_s1_sx2_air_flow" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.10213731229305267</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.03197641670703888</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_sx2_air_flow">
+  <data key="d0">0.0557202585041523</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_jx_air_flow">
+  <data key="d0">0.0300581194460392</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk1_steam_sp">
+  <data key="d0">0.053833968937397</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.0791122317314148</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.03896515443921089</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.11291322112083435</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.05716291815042496</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.09096203744411469</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.1172100231051445</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="fx_s1_k6_level">
+  <data key="d0">0.03367748484015465</data>
+</edge>
+<edge source="fx_s1_sx3_froth_h" target="y_grade">
+  <data key="d0">0.03240138292312622</data>
+</edge>
+<edge source="fx_s1_sx3_air_flow" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.04619445279240608</data>
+</edge>
+<edge source="fx_s1_sx3_air_flow" target="fx_s1_sx3_froth_h">
+  <data key="d0">0.12853674590587616</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_cx2_level">
+  <data key="d0">0.06676555424928665</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_cx3_level">
+  <data key="d0">0.04311637207865715</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_cx3_air_flow">
+  <data key="d0">0.0341755673289299</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_sx1_level">
+  <data key="d0">0.0488286130130291</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_sx2_level">
+  <data key="d0">0.06383489072322845</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_sx3_level">
+  <data key="d0">0.09386757016181946</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_jx_air_flow">
+  <data key="d0">0.04182137921452522</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_td_rough_freq">
+  <data key="d0">0.044136542826890945</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_ph">
+  <data key="d0">0.02266162820160389</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_tk2_temp">
+  <data key="d0">0.06910613924264908</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.09992309659719467</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_tk3_temp">
+  <data key="d0">0.02919161692261696</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.061909329146146774</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.08627746254205704</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="fx_blower1_pressure">
+  <data key="d0">0.027409138157963753</data>
+</edge>
+<edge source="fx_s1_jx_froth_h" target="y_grade">
+  <data key="d0">0.027141470462083817</data>
+</edge>
+<edge source="fx_s1_jx_level" target="fx_s1_sx1_level">
+  <data key="d0">0.7079840898513794</data>
+</edge>
+<edge source="fx_s1_jx_level" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.02160598710179329</data>
+</edge>
+<edge source="fx_s1_jx_air_flow" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.04471445083618164</data>
+</edge>
+<edge source="fx_s1_td_rough_freq" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.13834679126739502</data>
+</edge>
+<edge source="fx_s1_td_rough_freq" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.18279047310352325</data>
+</edge>
+<edge source="fx_s1_td_rough_freq" target="fx_s1_sx3_froth_h">
+  <data key="d0">0.13072434067726135</data>
+</edge>
+<edge source="fx_s1_ph" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.04243212938308716</data>
+</edge>
+<edge source="fx_s1_ph" target="fx_s1_sx2_froth_h">
+  <data key="d0">0.05438105762004852</data>
+</edge>
+<edge source="fx_s1_ph" target="fx_s1_sx3_froth_h">
+  <data key="d0">0.023335473611950874</data>
+</edge>
+<edge source="fx_s1_tk1_temp" target="fx_s1_tk1_steam_sp">
+  <data key="d0">0.5933815240859985</data>
+</edge>
+<edge source="fx_s1_tk1_temp" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.5087466835975647</data>
+</edge>
+<edge source="fx_s1_tk1_steam_sp" target="fx_s1_tk1_steam_fb">
+  <data key="d0">0.15959154069423676</data>
+</edge>
+<edge source="fx_s1_tk2_temp" target="fx_s1_tk2_steam_sp">
+  <data key="d0">0.4814779758453369</data>
+</edge>
+<edge source="fx_s1_tk2_temp" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.46673014760017395</data>
+</edge>
+<edge source="fx_s1_tk2_steam_sp" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.16567379236221313</data>
+</edge>
+<edge source="fx_s1_tk3_temp" target="fx_s1_tk3_steam_sp">
+  <data key="d0">0.47802844643592834</data>
+</edge>
+<edge source="fx_s1_tk3_temp" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.4914146661758423</data>
+</edge>
+<edge source="fx_s1_tk3_steam_sp" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.17044635117053986</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_nt1_motor_current">
+  <data key="d0">0.026398949325084686</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_cx1_level">
+  <data key="d0">0.8572919368743896</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.02123427949845791</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.021621443331241608</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.06854645907878876</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_pool3_level">
+  <data key="d0">0.023949678987264633</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.031506169587373734</data>
+</edge>
+<edge source="fx_s1_pool1_level" target="fx_s1_ft1702">
+  <data key="d0">0.029357459396123886</data>
+</edge>
+<edge source="fx_s1_pool1_pump_freq" target="fx_s1_tk2_steam_fb">
+  <data key="d0">0.029592245817184448</data>
+</edge>
+<edge source="fx_s1_pool1_pump_freq" target="fx_s1_pool1_level">
+  <data key="d0">0.06979120522737503</data>
+</edge>
+<edge source="fx_s1_pool1_pump_freq" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.08759002387523651</data>
+</edge>
+<edge source="fx_s1_pool1_pump_freq" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.023983122780919075</data>
+</edge>
+<edge source="fx_s1_pool1_pump_freq" target="fx_ah5_power">
+  <data key="d0">0.03888006508350372</data>
+</edge>
+<edge source="fx_s1_pool1_pump_curr" target="fx_s1_pool1_level">
+  <data key="d0">0.09449443221092224</data>
+</edge>
+<edge source="fx_s1_pool1_pump_curr" target="fx_s1_pool1_pump_freq">
+  <data key="d0">0.07859504967927933</data>
+</edge>
+<edge source="fx_s1_pool1_pump_curr" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.08635960519313812</data>
+</edge>
+<edge source="fx_s1_pool1_pump_curr" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.02643284760415554</data>
+</edge>
+<edge source="fx_s1_pool1_pump_curr" target="fx_ah5_power">
+  <data key="d0">0.08084975183010101</data>
+</edge>
+<edge source="fx_s1_pool2_pump_freq" target="fx_s1_pool1_level">
+  <data key="d0">0.04041818901896477</data>
+</edge>
+<edge source="fx_s1_pool2_pump_freq" target="fx_s1_pool1_pump_freq">
+  <data key="d0">0.028900086879730225</data>
+</edge>
+<edge source="fx_s1_pool2_pump_freq" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.13873769342899323</data>
+</edge>
+<edge source="fx_s1_pool2_pump_freq" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.061370477080345154</data>
+</edge>
+<edge source="fx_s1_pool3_level" target="fx_nt1_motor_current">
+  <data key="d0">0.04652170464396477</data>
+</edge>
+<edge source="fx_s1_pool3_level" target="fx_s1_cx1_level">
+  <data key="d0">0.853618860244751</data>
+</edge>
+<edge source="fx_s1_pool3_level" target="fx_s1_cx2_air_flow">
+  <data key="d0">0.025278527289628983</data>
+</edge>
+<edge source="fx_s1_pool3_level" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.06845774501562119</data>
+</edge>
+<edge source="fx_s1_pool3_level" target="fx_s1_ft1702">
+  <data key="d0">0.04664401337504387</data>
+</edge>
+<edge source="fx_s1_pool3_pump_freq" target="fx_s1_pool1_pump_curr">
+  <data key="d0">0.05489398539066315</data>
+</edge>
+<edge source="fx_s1_pool3_pump_freq" target="fx_s1_pool2_pump_freq">
+  <data key="d0">0.04126093536615372</data>
+</edge>
+<edge source="fx_s1_pool3_pump_freq" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.0862419381737709</data>
+</edge>
+<edge source="fx_s1_pool3_pump_freq" target="fx_s1_pool3_level">
+  <data key="d0">0.13285918533802032</data>
+</edge>
+<edge source="fx_s1_pool3_pump_freq" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.021022357046604156</data>
+</edge>
+<edge source="fx_s1_pool3_pump_curr" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.08802199363708496</data>
+</edge>
+<edge source="fx_s1_pool3_pump_curr" target="fx_s1_pool3_level">
+  <data key="d0">0.03216976672410965</data>
+</edge>
+<edge source="fx_blower1_pressure" target="fx_s1_sx3_froth_h">
+  <data key="d0">0.030205991119146347</data>
+</edge>
+<edge source="fx_ah5_power" target="fx_s1_pool2_pump_curr">
+  <data key="d0">0.07765723764896393</data>
+</edge>
+<edge source="fx_ah5_power" target="fx_s1_pool3_pump_curr">
+  <data key="d0">0.025346502661705017</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_nt1_motor_current">
+  <data key="d0">0.2141074538230896</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_s1_cx1_air_flow">
+  <data key="d0">0.028051478788256645</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.05227389559149742</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_s1_td_rough_freq">
+  <data key="d0">0.02035030536353588</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_s1_tk3_steam_fb">
+  <data key="d0">0.023167483508586884</data>
+</edge>
+<edge source="fx_s1_ft1701" target="fx_s1_ft1702">
+  <data key="d0">0.07532847672700882</data>
+</edge>
+<edge source="fx_s1_ft1702" target="fx_nt1_motor_current">
+  <data key="d0">0.23075047135353088</data>
+</edge>
+<edge source="fx_s1_ft1702" target="fx_s1_cx3_level">
+  <data key="d0">0.024935372173786163</data>
+</edge>
+<edge source="fx_s1_ft1702" target="fx_s1_sx1_froth_h">
+  <data key="d0">0.05491939187049866</data>
+</edge>
+</graph></graphml>

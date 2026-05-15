@@ -1,0 +1,10 @@
+{
+  "num_nodes": 7,
+  "num_edges": 9,
+  "is_dag": true,
+  "target_node": "y_grade",
+  "num_target_parents": 3,
+  "num_target_ancestors": 6,
+  "num_target_descendants": 0,
+  "num_dml_jobs": 3
+}

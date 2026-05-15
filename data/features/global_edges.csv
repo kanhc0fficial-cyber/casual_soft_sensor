@@ -1,0 +1,15 @@
+source,target,score,lag,edge_type
+fx_s1_cx1_level,fx_s1_cx2_level,0.9089989066123962,1,directed
+fx_s1_cx2_level,fx_s1_cx3_level,0.8838422298431396,1,directed
+fx_s1_cx3_level,fx_s1_jx_level,0.8633508682250977,1,directed
+fx_s1_cx3_level,fx_s2_jx_level,0.8633517622947693,1,directed
+fx_s1_cx3_level,fx_s1_sx1_level,0.8255996704101562,2,directed
+fx_s1_cx3_level,fx_s2_sx1_level,0.8255050778388977,2,directed
+fx_s1_sx1_level,fx_s1_sx2_level,0.4601989984512329,1,directed
+fx_s1_sx1_level,fx_s2_sx2_level,0.4602126181125641,1,directed
+fx_s1_sx2_level,fx_s1_sx3_level,0.4621191918849945,1,directed
+fx_s1_sx2_level,fx_s2_sx3_level,0.4613931477069855,1,directed
+fx_s2_sx1_level,fx_s1_sx2_level,0.45595940947532654,1,directed
+fx_s2_sx1_level,fx_s2_sx2_level,0.4559982120990753,1,directed
+fx_s2_sx2_level,fx_s1_sx3_level,0.4587060511112213,1,directed
+fx_s2_sx2_level,fx_s2_sx3_level,0.45931848883628845,1,directed

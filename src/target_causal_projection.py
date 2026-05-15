@@ -100,9 +100,9 @@ def check_dag(G: nx.DiGraph, log_path: Path) -> bool:
     """
     is_dag = nx.is_directed_acyclic_graph(G)
     if is_dag:
-        print("[check_dag] 图为合法 DAG ✓")
+        print("[check_dag] 图为合法 DAG [OK]")
     else:
-        print("[check_dag] ⚠ 图不是 DAG，检测到环！详情见：" + str(log_path))
+        print("[check_dag] [WARNING] 图不是 DAG，检测到环！详情见：" + str(log_path))
         log_path.parent.mkdir(parents=True, exist_ok=True)
         cycles = list(nx.simple_cycles(G))
         with open(log_path, "w", encoding="utf-8") as f:
@@ -449,12 +449,12 @@ def main():
 
     # 8. 打印输出文件路径
     print()
-    print("─" * 60)
+    print("-" * 60)
     print("输出文件：")
     for key, fpath in paths.items():
         print(f"  {key:30s}: {fpath}")
-    print("─" * 60)
-    print("✓ 因果投影完成")
+    print("-" * 60)
+    print("[OK] 因果投影完成")
 
 
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 WINDOW_SIZE = 15
 BATCH_SIZE = 32       # 真实数据节点数多，减小 batch 防显存溢出
 EPOCHS = 100          # 50→100：真实数据噪声大，多训练以充分收敛
-LR = 0.003
+LR = 0.005            # 提高学习率以加快收敛
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 邻接矩阵阈值（按算法分别设定）
@@ -59,11 +59,11 @@ DEFAULT_THRESHOLD = 0.05
 ALGO_THRESHOLDS = {
     "biattn_cuts":    0.30,   # sigmoid 输出需更高阈值以降低 FDR
     "multiscale_nts": 0.03,   # 原始权重需更低阈值以提升 TPR
-    "mb_cuts":        0.05,   # 基线保持不变
+    "mb_cuts":        0.02,   # 降低阈值以捕捉更多弱边
 }
 
 # 拓扑掩码惩罚权重（物理不可行边的惩罚系数）
-TOPO_PENALTY_WEIGHT = 10.0
+TOPO_PENALTY_WEIGHT = 2.0    # 降低惩罚权重，避免过度约束
 
 # ─── 辅助函数 ────────────────────────────────────────────────────────────────
 
@@ -353,7 +353,7 @@ def train_with_topo_mask(model, X_all, topo_mask, epochs=EPOCHS, verbose=True, a
             # 稀疏性约束（仅在物理可行区域施加，避免压制有效信号）
             sparse = torch.sum(torch.abs(model.W * topo_t))
 
-            loss = mse + 0.001 * sparse + 0.1 * h_sq + TOPO_PENALTY_WEIGHT * topo_penalty
+            loss = mse + 0.0001 * sparse + 0.1 * h_sq + TOPO_PENALTY_WEIGHT * topo_penalty
             loss.backward()
             opt.step()
             total_loss += loss.item()
@@ -366,7 +366,7 @@ def train_with_topo_mask(model, X_all, topo_mask, epochs=EPOCHS, verbose=True, a
 
 # ─── MB-CUTS 真实数据专用训练 ─────────────────────────────────────────────────
 
-def _compute_mb_mask(X_norm, keep_ratio=0.5):
+def _compute_mb_mask(X_norm, keep_ratio=0.7):
     """
     基于 Spearman 秩相关计算近似马尔可夫毯掩码。
 
@@ -476,7 +476,7 @@ def train_mb_cuts_real(X_all, topo_mask, verbose=True, epochs=None):
             sparse = torch.sum(torch.abs(model_fine.W))
             # 惩罚交集掩码外的边（同时违反统计支持和物理可行性）
             mb_penalty = torch.sum(torch.abs(model_fine.W * non_final_t))
-            loss = mse + 0.001 * sparse + 0.1 * h_val * h_val + TOPO_PENALTY_WEIGHT * mb_penalty
+            loss = mse + 0.0001 * sparse + 0.1 * h_val * h_val + TOPO_PENALTY_WEIGHT * mb_penalty
             loss.backward()
             opt_fine.step()
             total_loss += loss.item()
@@ -572,23 +572,34 @@ def extract_adj_and_save(model, valid_vars, topo_mask, line, algo_name, threshol
 
 # ─── 主函数 ──────────────────────────────────────────────────────────────────
 
-def run_all(line="xin1", epochs=None, threshold=None):
+def run_all(line="xin1", epochs=None, threshold=None, sample_ratio=None):
     """
     对单条产线运行全部三种创新算法并输出 GraphML。
 
     参数:
-        line:      'xin1' 或 'xin2'
-        epochs:    训练轮数（None 则使用全局默认 EPOCHS）
-        threshold: 邻接矩阵阈值（None 则使用全局默认 DEFAULT_THRESHOLD）
+        line:         'xin1' 或 'xin2'
+        epochs:       训练轮数（None 则使用全局默认 EPOCHS）
+        threshold:    邻接矩阵阈值（None 则使用全局默认 DEFAULT_THRESHOLD）
+        sample_ratio: 采样比例（None 则使用全部数据，0.1 = 10%）
     """
     eff_epochs = epochs if epochs is not None else EPOCHS
     eff_threshold = threshold if threshold is not None else DEFAULT_THRESHOLD
     print(f"\n{'='*70}")
     print(f"创新算法真实数据因果发现  [产线={line}]  设备={DEVICE}")
+    if sample_ratio is not None:
+        print(f"[采样模式] 使用 {sample_ratio*100:.0f}% 数据")
     print(f"{'='*70}")
 
     t0 = time.time()
     df, valid_vars, var_to_stage, var_to_group = prepare_data(line)
+    
+    # 数据采样
+    if sample_ratio is not None and 0 < sample_ratio < 1:
+        original_size = len(df)
+        sample_size = int(original_size * sample_ratio)
+        print(f"\n[采样] 从 {original_size} 个样本中采样 {sample_size} 个")
+        df = df.sample(n=sample_size, random_state=42).reset_index(drop=True)
+    
     N = len(valid_vars)
     print(f"变量数: {N}  样本数: {len(df)}")
 
@@ -644,6 +655,76 @@ def run_all(line="xin1", epochs=None, threshold=None):
     print(f"\n[{line}] 全部完成，耗时 {elapsed:.1f}s")
 
 
+def run_single_algo(line="xin1", algo="mb_cuts", epochs=None, threshold=None, sample_ratio=None):
+    """
+    运行单个算法。
+    
+    参数:
+        line:         产线名称
+        algo:         算法名称 ('mb_cuts', 'multiscale_nts', 'biattn_cuts')
+        epochs:       训练轮数
+        threshold:    邻接矩阵阈值
+        sample_ratio: 采样比例
+    """
+    eff_epochs = epochs if epochs is not None else EPOCHS
+    eff_threshold = threshold if threshold is not None else DEFAULT_THRESHOLD
+    
+    print(f"\n{'='*70}")
+    print(f"{algo.upper()} 因果发现  [产线={line}]  设备={DEVICE}")
+    if sample_ratio is not None:
+        print(f"[采样模式] 使用 {sample_ratio*100:.0f}% 数据")
+    print(f"{'='*70}")
+
+    t0 = time.time()
+    df, valid_vars, var_to_stage, var_to_group = prepare_data(line)
+    
+    # 数据采样
+    if sample_ratio is not None and 0 < sample_ratio < 1:
+        original_size = len(df)
+        sample_size = int(original_size * sample_ratio)
+        print(f"\n[采样] 从 {original_size} 个样本中采样 {sample_size} 个")
+        df = df.sample(n=sample_size, random_state=42).reset_index(drop=True)
+    
+    N = len(valid_vars)
+    print(f"变量数: {N}  样本数: {len(df)}")
+
+    all_vars = valid_vars + ["y_grade"]
+    X_all = df[all_vars].values.astype(np.float32)
+
+    topo_mask = build_topology_mask(valid_vars, var_to_stage, var_to_group, line)
+    n_feasible = int(topo_mask.sum())
+    total_possible = (N + 1) ** 2 - (N + 1)
+    print(f"物理可行边数: {n_feasible} / {total_possible}  "
+          f"({n_feasible / total_possible * 100:.1f}%)")
+
+    d = N + 1
+
+    if algo == "mb_cuts":
+        print(f"\n--- 训练 MB-CUTS ---")
+        model = train_mb_cuts_real(X_all, topo_mask, verbose=True, epochs=eff_epochs)
+        extract_adj_and_save(model, valid_vars, topo_mask, line, "mb_cuts",
+                             threshold=ALGO_THRESHOLDS.get("mb_cuts", eff_threshold))
+    elif algo == "multiscale_nts":
+        print(f"\n--- 训练 MultiScale-NTS ---")
+        model = MultiScaleNTSNet(d).to(DEVICE)
+        model = train_with_topo_mask(model, X_all, topo_mask, epochs=eff_epochs, algo_name="MultiScale-NTS")
+        extract_adj_and_save(model, valid_vars, topo_mask, line, "multiscale_nts",
+                             threshold=ALGO_THRESHOLDS.get("multiscale_nts", eff_threshold))
+    elif algo == "biattn_cuts":
+        print(f"\n--- 训练 BiAttn-CUTS ---")
+        model = BiAttnCUTSNet(d).to(DEVICE)
+        model = train_with_topo_mask(model, X_all, topo_mask, epochs=eff_epochs, algo_name="BiAttn-CUTS")
+        extract_adj_and_save(model, valid_vars, topo_mask, line, "biattn_cuts",
+                             threshold=ALGO_THRESHOLDS.get("biattn_cuts", eff_threshold))
+    
+    if DEVICE.type == "cuda":
+        torch.cuda.empty_cache()
+    gc.collect()
+
+    elapsed = time.time() - t0
+    print(f"\n[{line}] {algo.upper()} 完成，耗时 {elapsed:.1f}s")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -668,8 +749,29 @@ if __name__ == "__main__":
         default=EPOCHS,
         help=f"训练轮数（默认: {EPOCHS}）",
     )
+    parser.add_argument(
+        "--sample_ratio",
+        type=float,
+        default=None,
+        help="采样比例（0.1 = 10%%，None = 使用全部数据）",
+    )
+    parser.add_argument(
+        "--algo",
+        choices=["all", "mb_cuts", "multiscale_nts", "biattn_cuts"],
+        default="all",
+        help="算法选择（默认: all，运行所有算法）",
+    )
     args = parser.parse_args()
 
     lines = ["xin1", "xin2"] if args.line == "both" else [args.line]
+    
+    # 如果指定了单个算法，只运行该算法
+    if args.algo != "all":
+        print(f"\n[模式] 只运行 {args.algo.upper()} 算法")
+    
     for ln in lines:
-        run_all(ln, epochs=args.epochs, threshold=args.threshold)
+        if args.algo == "all":
+            run_all(ln, epochs=args.epochs, threshold=args.threshold, sample_ratio=args.sample_ratio)
+        else:
+            # 运行单个算法
+            run_single_algo(ln, args.algo, epochs=args.epochs, threshold=args.threshold, sample_ratio=args.sample_ratio)

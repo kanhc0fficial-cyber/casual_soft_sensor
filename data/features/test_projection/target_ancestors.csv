@@ -1,0 +1,7 @@
+node,variable,lag,distance_to_target
+fx_s1_cx3_level,fx_s1_cx3_level,,1
+fx_s1_sx1_level,fx_s1_sx1_level,,1
+fx_s1_jx_level,fx_s1_jx_level,,1
+fx_s1_sx2_level,fx_s1_sx2_level,,2
+fx_s1_cx2_level,fx_s1_cx2_level,,2
+fx_s1_cx1_level,fx_s1_cx1_level,,3

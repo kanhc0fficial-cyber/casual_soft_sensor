@@ -1,0 +1,4 @@
+node,variable,lag,edge_score,edge_type
+fx_s1_jx_level,fx_s1_jx_level,,0.75,directed
+fx_s1_cx3_level,fx_s1_cx3_level,,0.6,directed
+fx_s1_sx1_level,fx_s1_sx1_level,,0.55,directed
