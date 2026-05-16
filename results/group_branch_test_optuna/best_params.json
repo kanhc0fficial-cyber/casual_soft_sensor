@@ -1,8 +1,0 @@
-{
-  "lr": 0.0007309539835912913,
-  "batch_size": 64,
-  "hidden_dim_preprocessing": 32,
-  "hidden_dim_reagent": 40,
-  "hidden_dim_flotation": 56,
-  "gate_init": 0.37986951286334386
-}
