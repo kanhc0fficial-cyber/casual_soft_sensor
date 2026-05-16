@@ -19,9 +19,13 @@ DML 正交残差软测量第二阶段脚本。
 
 输出（results/residual_soft_sensor/）：
   variable_roles.csv
+  baseline_predictions_test.csv
+  as_lstm_predictions_test.csv
+  dml_effect_weights.csv
+  dml_effect_weight_predictions_test.csv
   residual_feature_summary.csv
   y_baseline_predictions.csv
-  predictions_test.csv
+  dml_residual_predictions_test.csv
   metrics_compare.csv
   run_log.txt
 """
@@ -134,6 +138,13 @@ def load_config(config_path: str) -> dict:
         "random_seed": 42,
         "output_dir": "results/residual_soft_sensor",
         "allow_synthetic_demo": False,
+        "external_dml_effect_dir": "casual_soft_sensor\\dml_causal_effect_value\\结果\\20260516_062800",
+        "dml_effect_variable_col": None,
+        "dml_effect_value_col": None,
+        "dml_weight_clip_min": 0.3,
+        "dml_weight_clip_max": 3.0,
+        "state_weight_default": 1.0,
+        "missing_effect_weight": 1.0,
     }
     for k, v in defaults.items():
         cfg.setdefault(k, v)
@@ -253,8 +264,8 @@ def infer_variable_roles(
     # Bug 2 修复：operation_vars 留空时发出警告，当前版本不支持真实数据下自动推断
     if not op_vars:
         logger.warning(
-            "operation_vars 为空，因果输入模型（causal_input）和 DML 残差模型"
-            "（dml_residual）中 A 列将为空，请在配置中手工填写操作变量名。"
+            "operation_vars 为空，as_lstm / dml_effect_weight_lstm / dml_residual_lstm"
+            " 的 A 列将为空，请在配置中手工填写操作变量名。"
         )
 
     # Bug 3 修复：只自动跳过 datetime 类型列；object 列保留在角色表并标为 excluded
@@ -781,7 +792,7 @@ def run_model0_baseline(
     })
 
     return {
-        "model_name": "baseline",
+        "model_name": "baseline_all_lstm",
         "metrics": metrics,
         "y_true": y_true,
         "y_pred": y_pred,
@@ -813,7 +824,7 @@ def run_model1_causal_input(
     if not causal_cols:
         logger.warning("A + S 为空，跳过 Model 1")
         return {
-            "model_name": "causal_input",
+            "model_name": "as_lstm",
             "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
             "y_true": np.array([]),
             "y_pred": np.array([]),
@@ -861,7 +872,7 @@ def run_model1_causal_input(
     })
 
     return {
-        "model_name": "causal_input",
+        "model_name": "as_lstm",
         "metrics": metrics,
         "y_true": y_true,
         "y_pred": y_pred,
@@ -873,9 +884,317 @@ def run_model1_causal_input(
     }
 
 
-# ─── Model 2：DML 残差软测量 ──────────────────────────────────────────────────
+# ─── Model 2：DML 效应权重软测量 ──────────────────────────────────────────────
 
-def run_model2_dml_residual(
+def _resolve_external_effect_dir(effect_dir_cfg: str) -> Path:
+    effect_dir = Path(str(effect_dir_cfg).replace("\\", os.sep))
+    if effect_dir.exists():
+        return effect_dir
+    repo_root = Path(__file__).resolve().parents[1]
+    alt_effect_dir = repo_root / str(effect_dir_cfg).replace("\\", os.sep)
+    if alt_effect_dir.exists():
+        return alt_effect_dir
+    return effect_dir
+
+
+def _read_effect_table(path: Path) -> pd.DataFrame:
+    if path.suffix.lower() == ".csv":
+        return pd.read_csv(path)
+    if path.suffix.lower() in (".xlsx", ".xls"):
+        return pd.read_excel(path)
+    if path.suffix.lower() == ".parquet":
+        return pd.read_parquet(path)
+    raise ValueError(f"不支持的效应文件格式: {path}")
+
+
+def _load_external_dml_effects(
+    cfg: dict,
+    a_cols: List[str],
+    logger: logging.Logger,
+) -> Tuple[Dict[str, float], Optional[Path], Optional[str], Optional[str]]:
+    effect_dir = _resolve_external_effect_dir(cfg["external_dml_effect_dir"])
+    if not effect_dir.exists():
+        logger.warning(f"外部 DML 效应目录不存在: {effect_dir}")
+        return {}, None, None, None
+
+    candidates = sorted(
+        [p for p in effect_dir.rglob("*") if p.is_file() and p.suffix.lower() in {".csv", ".xlsx", ".xls", ".parquet"}]
+    )
+    if not candidates:
+        logger.warning(f"外部 DML 效应目录中未找到表格文件: {effect_dir}")
+        return {}, None, None, None
+
+    var_candidates = ["variable", "treatment", "treatment_var", "operation_var", "treatment_variable", "变量名", "变量"]
+    effect_candidates = ["effect", "theta", "causal_effect", "effect_value", "ate", "dml效应系数", "效应系数", "dml_effect"]
+
+    best = None
+    a_cols_lc = {c.lower(): c for c in a_cols}
+    preferred_var = cfg.get("dml_effect_variable_col")
+    preferred_effect = cfg.get("dml_effect_value_col")
+
+    for fp in candidates:
+        try:
+            df = _read_effect_table(fp)
+        except Exception as e:
+            logger.warning(f"读取效应文件失败，跳过: {fp} | {e}")
+            continue
+        if df.empty:
+            logger.warning(f"效应文件为空，跳过: {fp}")
+            continue
+
+        cols = list(df.columns)
+        cols_lc = {str(c).strip().lower(): str(c) for c in cols}
+        var_col = None
+        effect_col = None
+
+        if preferred_var is not None:
+            var_col = cols_lc.get(str(preferred_var).strip().lower())
+        if preferred_effect is not None:
+            effect_col = cols_lc.get(str(preferred_effect).strip().lower())
+        if var_col is None:
+            for c in var_candidates:
+                if c in cols_lc:
+                    var_col = cols_lc[c]
+                    break
+        if effect_col is None:
+            for c in effect_candidates:
+                if c in cols_lc:
+                    effect_col = cols_lc[c]
+                    break
+
+        if var_col is None or effect_col is None:
+            logger.info(f"效应文件列不匹配，文件={fp}，可用列={cols}")
+            continue
+
+        tmp = df[[var_col, effect_col]].copy()
+        tmp[var_col] = tmp[var_col].astype(str).str.strip()
+        tmp[effect_col] = pd.to_numeric(tmp[effect_col], errors="coerce")
+        tmp = tmp.dropna(subset=[var_col, effect_col])
+        if tmp.empty:
+            logger.info(f"效应文件无有效数据，文件={fp}，可用列={cols}")
+            continue
+
+        match_count = int(tmp[var_col].str.lower().isin(a_cols_lc.keys()).sum())
+        score = (match_count, len(tmp))
+        if best is None or score > best["score"]:
+            best = {
+                "score": score,
+                "path": fp,
+                "df": tmp,
+                "var_col": var_col,
+                "effect_col": effect_col,
+                "available_cols": cols,
+            }
+
+    if best is None:
+        logger.warning(f"未找到可用 DML 效应表格文件，目录={effect_dir}")
+        return {}, None, None, None
+
+    logger.info(f"找到的 DML effect 文件路径: {best['path']}")
+    logger.info(f"使用的 DML 列名: variable_col={best['var_col']}, effect_col={best['effect_col']}")
+
+    grouped = best["df"].groupby(best["var_col"], as_index=False)[best["effect_col"]].mean()
+    effect_dict = dict(zip(grouped[best["var_col"]].astype(str), grouped[best["effect_col"]].astype(float)))
+    return effect_dict, best["path"], best["var_col"], best["effect_col"]
+
+
+def run_model2_dml_effect_weight_lstm(
+    train_df: pd.DataFrame,
+    val_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    c_cols: List[str],
+    a_cols: List[str],
+    s_cols: List[str],
+    target_col: str,
+    cfg: dict,
+    logger: logging.Logger,
+    output_dir: Path,
+) -> dict:
+    """Model 2: A + S -> DML效应权重加权 -> LSTM -> y。"""
+    logger.info("=" * 60)
+    logger.info("Model 2: DML效应权重软测量 (A + S -> weighted -> LSTM -> y)")
+
+    feature_cols = a_cols + s_cols
+    if not feature_cols:
+        logger.warning("A + S 为空，跳过 Model 2")
+        return {
+            "model_name": "dml_effect_weight_lstm",
+            "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
+            "y_true": np.array([]),
+            "y_pred": np.array([]),
+            "lstm": None,
+            "as_scaler": None,
+            "y_scaler": None,
+            "feature_cols": [],
+            "predictions_test": pd.DataFrame(),
+            "dml_effect_weights": pd.DataFrame(),
+        }
+
+    window_size = cfg["window_size"]
+    feat_scaler, y_scaler = fit_scalers(train_df, feature_cols, target_col)
+    X_tr_scaled, y_tr = apply_scalers(train_df, feature_cols, target_col, feat_scaler, y_scaler)
+    X_vl_scaled, y_vl = apply_scalers(val_df, feature_cols, target_col, feat_scaler, y_scaler)
+    X_te_scaled, y_te = apply_scalers(test_df, feature_cols, target_col, feat_scaler, y_scaler)
+
+    effect_dict, effect_file, effect_var_col, effect_value_col = _load_external_dml_effects(cfg, a_cols, logger)
+    if effect_file is None:
+        logger.warning("未读取到外部 DML effect 文件，将使用默认权重。")
+
+    clip_min = float(cfg.get("dml_weight_clip_min", 0.3))
+    clip_max = float(cfg.get("dml_weight_clip_max", 3.0))
+    state_weight = float(cfg.get("state_weight_default", 1.0))
+    missing_weight = float(cfg.get("missing_effect_weight", 1.0))
+
+    effect_dict_lc = {str(k).strip().lower(): float(v) for k, v in effect_dict.items()}
+    matched_a = []
+    missing_a = []
+    available_abs = []
+    raw_weights = {}
+    rows = []
+
+    for col in a_cols:
+        eff = effect_dict_lc.get(col.lower())
+        if eff is None or not np.isfinite(eff):
+            missing_a.append(col)
+            rows.append({
+                "variable": col,
+                "role": "operation_A",
+                "effect": np.nan,
+                "abs_effect": np.nan,
+                "sign": np.nan,
+                "raw_weight": float(missing_weight),
+                "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                "weight_source": "missing_effect_default_1",
+            })
+        else:
+            matched_a.append(col)
+            ae = abs(float(eff))
+            available_abs.append(ae)
+            rows.append({
+                "variable": col,
+                "role": "operation_A",
+                "effect": float(eff),
+                "abs_effect": ae,
+                "sign": float(np.sign(eff)),
+                "raw_weight": np.nan,
+                "final_weight": np.nan,
+                "weight_source": "external_dml_effect",
+            })
+
+    mean_abs = float(np.mean(available_abs)) if available_abs else 0.0
+    if mean_abs <= 1e-12 and matched_a:
+        logger.warning("匹配到的 A 变量效应绝对值均值接近 0，A 变量权重回退为默认值 1.0。")
+
+    for row in rows:
+        if row["role"] != "operation_A":
+            continue
+        if row["weight_source"] == "external_dml_effect" and mean_abs > 1e-12:
+            row["raw_weight"] = float(row["abs_effect"] / mean_abs)
+        elif np.isnan(row["raw_weight"]):
+            row["raw_weight"] = float(missing_weight)
+        row["final_weight"] = float(np.clip(row["raw_weight"], clip_min, clip_max))
+        raw_weights[row["variable"]] = row["raw_weight"]
+
+    for col in s_cols:
+        rows.append({
+            "variable": col,
+            "role": "state_S",
+            "effect": np.nan,
+            "abs_effect": np.nan,
+            "sign": np.nan,
+            "raw_weight": float(state_weight),
+            "final_weight": float(state_weight),
+            "weight_source": "state_default_1",
+        })
+        raw_weights[col] = float(state_weight)
+
+    logger.info(f"成功匹配到 effect 的 A 变量数量: {len(matched_a)}/{len(a_cols)}")
+    logger.info(f"缺失 effect 的 A 变量列表: {missing_a}")
+
+    a_raw_values = [raw_weights[c] for c in a_cols if c in raw_weights]
+    a_final_values = []
+    for r in rows:
+        if r["role"] == "operation_A":
+            a_final_values.append(float(r["final_weight"]))
+    if a_raw_values:
+        logger.info(
+            "A变量 raw_weight 统计: min=%.6f, max=%.6f, mean=%.6f",
+            float(np.min(a_raw_values)),
+            float(np.max(a_raw_values)),
+            float(np.mean(a_raw_values)),
+        )
+    if a_final_values:
+        logger.info(
+            "A变量 final_weight 统计: min=%.6f, max=%.6f, mean=%.6f",
+            float(np.min(a_final_values)),
+            float(np.max(a_final_values)),
+            float(np.mean(a_final_values)),
+        )
+    logger.info(f"S变量数量及默认权重: count={len(s_cols)}, weight={state_weight}")
+
+    weights_df = pd.DataFrame(rows, columns=[
+        "variable", "role", "effect", "abs_effect", "sign", "raw_weight", "final_weight", "weight_source"
+    ])
+    weights_path = output_dir / "dml_effect_weights.csv"
+    weights_df.to_csv(weights_path, index=False, encoding="utf-8-sig")
+    logger.info(f"已保存: {weights_path}")
+
+    feature_weights = np.array([
+        float(weights_df.loc[weights_df["variable"] == c, "final_weight"].iloc[0]) for c in feature_cols
+    ], dtype=np.float32)
+
+    X_tr = X_tr_scaled * feature_weights
+    X_vl = X_vl_scaled * feature_weights
+    X_te = X_te_scaled * feature_weights
+
+    Xw_tr, yw_tr = make_windows(X_tr, y_tr, window_size)
+    Xw_vl, yw_vl = make_windows(X_vl, y_vl, window_size)
+    Xw_te, yw_te = make_windows(X_te, y_te, window_size)
+
+    model = LSTMRegressor(
+        input_size=len(feature_cols),
+        hidden_size=cfg["lstm_hidden_size"],
+        num_layers=cfg["lstm_num_layers"],
+        dropout=cfg["lstm_dropout"],
+        epochs=cfg["lstm_epochs"],
+        batch_size=cfg["lstm_batch_size"],
+        lr=cfg["lstm_lr"],
+        patience=cfg["lstm_patience"],
+        seed=cfg["random_seed"],
+    )
+    model.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger)
+
+    y_pred_scaled = model.predict(Xw_te)
+    y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).ravel()
+    y_true = y_scaler.inverse_transform(yw_te.reshape(-1, 1)).ravel()
+    metrics = compute_metrics(y_true, y_pred)
+    logger.info(f"Model 2 Test: MAE={metrics['MAE']:.4f}, RMSE={metrics['RMSE']:.4f}, R2={metrics['R2']:.4f}")
+
+    predictions_test = pd.DataFrame({"y_true": y_true, "y_pred": y_pred})
+    pred_path = output_dir / "dml_effect_weight_predictions_test.csv"
+    predictions_test.to_csv(pred_path, index=False, encoding="utf-8-sig")
+    logger.info(f"已保存: {pred_path}")
+
+    return {
+        "model_name": "dml_effect_weight_lstm",
+        "metrics": metrics,
+        "y_true": y_true,
+        "y_pred": y_pred,
+        "lstm": model,
+        "as_scaler": feat_scaler,
+        "y_scaler": y_scaler,
+        "feature_cols": feature_cols,
+        "predictions_test": predictions_test,
+        "dml_effect_weights": weights_df,
+        "dml_effect_file": str(effect_file) if effect_file else "",
+        "dml_effect_variable_col": effect_var_col,
+        "dml_effect_value_col": effect_value_col,
+    }
+
+
+# ─── Model 3：DML 残差软测量 ──────────────────────────────────────────────────
+
+def run_model3_dml_residual(
     train_df: pd.DataFrame,
     val_df: pd.DataFrame,
     test_df: pd.DataFrame,
@@ -888,14 +1207,14 @@ def run_model2_dml_residual(
     output_dir: Path,
 ) -> dict:
     """
-    Model 2: DML 残差软测量
+    Model 3: DML 残差软测量
       C -> g(C) -> y_base
       C -> q_j(C) -> X_res_j
       [A_res, S_res] 窗口序列 -> LSTM -> y_res
       y_hat = y_base + y_res_hat
     """
     logger.info("=" * 60)
-    logger.info("Model 2: DML 残差软测量")
+    logger.info("Model 3: DML 残差软测量")
 
     from sklearn.preprocessing import StandardScaler
 
@@ -903,26 +1222,40 @@ def run_model2_dml_residual(
 
     # ── C 不足时降级 ─────────────────────────────────────────────────────────
     if not c_cols:
-        logger.warning("C candidates insufficient (n=0); Model 2 (DML 残差) 不可用，跳过残差化。")
+        logger.warning("C candidates insufficient (n=0); Model 3 (DML 残差) 不可用，跳过残差化。")
         return {
-            "model_name": "dml_residual_soft_sensor",
+            "model_name": "dml_residual_lstm",
             "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan"),
                         "note": "residual model unavailable: C is empty"},
             "y_true": np.array([]),
             "y_pred": np.array([]),
+            "residual_lstm": None,
+            "y_res_scaler": None,
+            "as_scaler": None,
+            "c_scaler": None,
+            "g_model": None,
+            "q_models": {},
+            "feature_cols": residual_as_cols,
             "residual_feature_summary": pd.DataFrame(),
             "y_baseline_predictions": pd.DataFrame(),
             "predictions_test": pd.DataFrame(),
         }
 
     if not residual_as_cols:
-        logger.warning("A + S 为空，Model 2 不可用")
+        logger.warning("A + S 为空，Model 3 不可用")
         return {
-            "model_name": "dml_residual_soft_sensor",
+            "model_name": "dml_residual_lstm",
             "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan"),
                         "note": "residual model unavailable: A+S is empty"},
             "y_true": np.array([]),
             "y_pred": np.array([]),
+            "residual_lstm": None,
+            "y_res_scaler": None,
+            "as_scaler": None,
+            "c_scaler": None,
+            "g_model": None,
+            "q_models": {},
+            "feature_cols": [],
             "residual_feature_summary": pd.DataFrame(),
             "y_baseline_predictions": pd.DataFrame(),
             "predictions_test": pd.DataFrame(),
@@ -1057,9 +1390,9 @@ def run_model2_dml_residual(
     metrics_final = compute_metrics(y_true_aligned, y_hat)
     metrics_res = compute_metrics(y_res_true, y_res_pred)
 
-    logger.info(f"Model 2 Test (原始 y): MAE={metrics_final['MAE']:.4f}, "
+    logger.info(f"Model 3 Test (原始 y): MAE={metrics_final['MAE']:.4f}, "
                 f"RMSE={metrics_final['RMSE']:.4f}, R2={metrics_final['R2']:.4f}")
-    logger.info(f"Model 2 Test (y_res):  MAE={metrics_res['MAE']:.4f}, "
+    logger.info(f"Model 3 Test (y_res):  MAE={metrics_res['MAE']:.4f}, "
                 f"RMSE={metrics_res['RMSE']:.4f}, R2={metrics_res['R2']:.4f}")
 
     # 完整预测记录
@@ -1073,10 +1406,18 @@ def run_model2_dml_residual(
     })
 
     return {
-        "model_name": "dml_residual_soft_sensor",
+        "model_name": "dml_residual_lstm",
         "metrics": metrics_final,
         "y_true": y_true_aligned,
         "y_pred": y_hat,
+        "residual_lstm": residual_lstm,
+        "y_res_scaler": y_res_scaler,
+        "as_scaler": as_scaler,
+        "feature_scaler": as_scaler,
+        "c_scaler": c_scaler,
+        "g_model": g_model,
+        "q_models": q_models,
+        "feature_cols": residual_as_cols,
         "residual_feature_summary": residual_feature_summary,
         "y_baseline_predictions": y_baseline_pred_df,
         "predictions_test": predictions_test,
@@ -1091,6 +1432,7 @@ def save_outputs(
     model0: dict,
     model1: dict,
     model2: dict,
+    model3: dict,
     logger: logging.Logger,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1100,30 +1442,45 @@ def save_outputs(
     roles_df.to_csv(roles_path, index=False, encoding="utf-8-sig")
     logger.info(f"已保存: {roles_path}")
 
-    # 2. y_baseline_predictions.csv
-    if not model2.get("y_baseline_predictions", pd.DataFrame()).empty:
+    # 2. 各模型预测文件
+    pred_file_map = [
+        (model0, "baseline_predictions_test.csv"),
+        (model1, "as_lstm_predictions_test.csv"),
+        (model2, "dml_effect_weight_predictions_test.csv"),
+        (model3, "dml_residual_predictions_test.csv"),
+    ]
+    for m_dict, filename in pred_file_map:
+        pred_df = m_dict.get("predictions_test", pd.DataFrame())
+        if isinstance(pred_df, pd.DataFrame) and not pred_df.empty:
+            p = output_dir / filename
+            pred_df.to_csv(p, index=False, encoding="utf-8-sig")
+            logger.info(f"已保存: {p}")
+
+    # 3. dml_effect_weights.csv
+    if not model2.get("dml_effect_weights", pd.DataFrame()).empty:
+        weights_path = output_dir / "dml_effect_weights.csv"
+        model2["dml_effect_weights"].to_csv(weights_path, index=False, encoding="utf-8-sig")
+        logger.info(f"已保存: {weights_path}")
+
+    # 4. y_baseline_predictions.csv
+    if not model3.get("y_baseline_predictions", pd.DataFrame()).empty:
         bp_path = output_dir / "y_baseline_predictions.csv"
-        model2["y_baseline_predictions"].to_csv(bp_path, index=False, encoding="utf-8-sig")
+        model3["y_baseline_predictions"].to_csv(bp_path, index=False, encoding="utf-8-sig")
         logger.info(f"已保存: {bp_path}")
 
-    # 3. residual_feature_summary.csv
-    if not model2.get("residual_feature_summary", pd.DataFrame()).empty:
+    # 5. residual_feature_summary.csv
+    if not model3.get("residual_feature_summary", pd.DataFrame()).empty:
         rs_path = output_dir / "residual_feature_summary.csv"
-        model2["residual_feature_summary"].to_csv(rs_path, index=False, encoding="utf-8-sig")
+        model3["residual_feature_summary"].to_csv(rs_path, index=False, encoding="utf-8-sig")
         logger.info(f"已保存: {rs_path}")
 
-    # 4. predictions_test.csv
-    if not model2.get("predictions_test", pd.DataFrame()).empty:
-        pt_path = output_dir / "predictions_test.csv"
-        model2["predictions_test"].to_csv(pt_path, index=False, encoding="utf-8-sig")
-        logger.info(f"已保存: {pt_path}")
-
-    # 5. metrics_compare.csv
+    # 6. metrics_compare.csv
     rows = []
     for m_dict, split in [
         (model0, "test"),
         (model1, "test"),
         (model2, "test"),
+        (model3, "test"),
     ]:
         mname = m_dict.get("model_name", "unknown")
         mvals = m_dict.get("metrics", {})
@@ -1143,14 +1500,13 @@ def save_outputs(
     metrics_df.to_csv(mc_path, index=False, encoding="utf-8-sig")
     logger.info(f"已保存: {mc_path}")
     logger.info("\n" + metrics_df.to_string(index=False))
-    
-    # 6. 保存模型权重和scalers
+
+    # 7. 保存模型权重和scalers
     import torch
     import pickle
-    
-    # 保存Model 2 (DML残差模型) 的LSTM权重
-    if "residual_lstm" in model2 and model2["residual_lstm"] is not None:
-        lstm_model = model2["residual_lstm"]
+
+    if "residual_lstm" in model3 and model3["residual_lstm"] is not None:
+        lstm_model = model3["residual_lstm"]
         if hasattr(lstm_model, '_model') and lstm_model._model is not None:
             model_path = output_dir / "dml_residual_lstm_checkpoint.pt"
             torch.save({
@@ -1161,29 +1517,26 @@ def save_outputs(
                 'dropout': lstm_model.dropout,
             }, model_path)
             logger.info(f"已保存DML残差LSTM权重: {model_path}")
-    
-    # 保存scalers和其他模型组件
-    scalers_path = output_dir / "model_scalers.pkl"
+
+    # Model 3 组件
+    scalers_path = output_dir / "dml_residual_model_components.pkl"
     scalers_dict = {}
-    
-    if "y_res_scaler" in model2:
-        scalers_dict["y_res_scaler"] = model2["y_res_scaler"]
-    if "as_scaler" in model2:
-        scalers_dict["as_scaler"] = model2["as_scaler"]
-    if "c_scaler" in model2:
-        scalers_dict["c_scaler"] = model2["c_scaler"]
-    if "g_model" in model2:
-        scalers_dict["g_model"] = model2["g_model"]
-    if "q_models" in model2:
-        scalers_dict["q_models"] = model2["q_models"]
-    
+
+    for key in ["y_res_scaler", "as_scaler", "feature_scaler", "c_scaler", "g_model", "q_models", "feature_cols"]:
+        if key in model3:
+            scalers_dict[key] = model3.get(key)
+
     if scalers_dict:
         with open(scalers_path, 'wb') as f:
             pickle.dump(scalers_dict, f)
-        logger.info(f"已保存scalers和基模型: {scalers_path}")
-    
-    # 保存Model 0和Model 1的LSTM权重和scalers
-    for model_dict, model_name in [(model0, "baseline"), (model1, "causal_input")]:
+        logger.info(f"已保存DML残差组件: {scalers_path}")
+
+    # 保存Model 0/1/2 的LSTM权重和scalers
+    for model_dict, model_name in [
+        (model0, "baseline_all_lstm"),
+        (model1, "as_lstm"),
+        (model2, "dml_effect_weight_lstm"),
+    ]:
         if "lstm" in model_dict and model_dict["lstm"] is not None:
             lstm_model = model_dict["lstm"]
             if hasattr(lstm_model, '_model') and lstm_model._model is not None:
@@ -1208,12 +1561,6 @@ def save_outputs(
                     with open(scaler_path, 'wb') as f:
                         pickle.dump(scaler_dict, f)
                     logger.info(f"已保存{model_name} scalers: {scaler_path}")
-                
-                # 保存预测结果
-                if "predictions_test" in model_dict:
-                    pred_path = output_dir / f"{model_name}_predictions_test.csv"
-                    model_dict["predictions_test"].to_csv(pred_path, index=False, encoding="utf-8-sig")
-                    logger.info(f"已保存{model_name} 预测结果: {pred_path}")
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────
@@ -1316,16 +1663,35 @@ def main():
         a_cols, s_cols, target_col, cfg, logger,
     )
 
-    # ── 7. Model 2：DML 残差软测量 ────────────────────────────────────────
-    model2 = run_model2_dml_residual(
+    # ── 7. Model 2：DML 效应权重软测量 ────────────────────────────────────
+    model2 = run_model2_dml_effect_weight_lstm(
         train_df, val_df, test_df,
         c_cols, a_cols, s_cols, target_col, cfg, logger, output_dir,
     )
 
-    # ── 8. 保存输出 ──────────────────────────────────────────────────────
-    save_outputs(output_dir, roles_df, model0, model1, model2, logger)
+    # ── 8. Model 3：DML 残差软测量 ────────────────────────────────────────
+    model3 = run_model3_dml_residual(
+        train_df, val_df, test_df,
+        c_cols, a_cols, s_cols, target_col, cfg, logger, output_dir,
+    )
 
-    # ── 9. 最终日志摘要 ──────────────────────────────────────────────────
+    # ── 9. 保存输出 ──────────────────────────────────────────────────────
+    save_outputs(output_dir, roles_df, model0, model1, model2, model3, logger)
+
+    # ── 10. 四模型测试指标摘要 ────────────────────────────────────────────
+    logger.info("-" * 60)
+    logger.info("四个模型最终测试指标：")
+    for m in [model0, model1, model2, model3]:
+        mm = m.get("metrics", {})
+        logger.info(
+            "%s | MAE=%.4f, RMSE=%.4f, R2=%.4f",
+            m.get("model_name", "unknown"),
+            float(mm.get("MAE", np.nan)),
+            float(mm.get("RMSE", np.nan)),
+            float(mm.get("R2", np.nan)),
+        )
+
+    # ── 11. 最终日志摘要 ─────────────────────────────────────────────────
     logger.info("=" * 60)
     logger.info("运行完成。输出文件：")
     for f in sorted(output_dir.iterdir()):

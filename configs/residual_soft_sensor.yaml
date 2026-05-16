@@ -121,6 +121,15 @@ lstm_patience: 8
 # ── 随机种子 ──────────────────────────────────────────────────────────────────
 random_seed: 42
 
+# ── 外部 DML 效应权重（Model 2）───────────────────────────────────────────────
+external_dml_effect_dir: "casual_soft_sensor\\dml_causal_effect_value\\结果\\20260516_062800"
+dml_effect_variable_col: null
+dml_effect_value_col: null
+dml_weight_clip_min: 0.3
+dml_weight_clip_max: 3.0
+state_weight_default: 1.0
+missing_effect_weight: 1.0
+
 # ── 演示模式（默认关闭） ─────────────────────────────────────────────────────
 # 设为 true 时，若 data_path 文件不存在，脚本会自动使用合成演示数据运行。
 # 生产环境请保持 false，否则数据缺失时脚本会产出"伪成功"结果。
