@@ -122,7 +122,7 @@ lstm_patience: 8
 random_seed: 42
 
 # ── 外部 DML 效应权重（Model 2）───────────────────────────────────────────────
-external_dml_effect_dir: "casual_soft_sensor\\dml_causal_effect_value\\结果\\20260516_062800"
+external_dml_effect_dir: "dml_causal_effect_value/结果/20260516_062800"
 dml_effect_variable_col: null
 dml_effect_value_col: null
 dml_weight_clip_min: 0.3
@@ -132,8 +132,8 @@ missing_effect_weight: 1.0
 
 # ── 新增：人工 DML 权重（Model 2）────────────────────────────────────────────
 # 若已运行 run_manual_dml_jobs_xin1.py，将此项设为 true 并填写路径
-dml_weight_use_manual_selected: false
-manual_dml_weight_path: null
+dml_weight_use_manual_selected: true
+manual_dml_weight_path: "dml_causal_effect_value/结果/manual_20260516_134710/manual_dml_theta_selected_for_weight.csv"
 # 列名配置（与 manual_dml_theta_selected_for_weight.csv 对应，一般无需改动）
 dml_weight_value_col: "theta_std"
 dml_weight_variable_col: "resolved_treatment"
