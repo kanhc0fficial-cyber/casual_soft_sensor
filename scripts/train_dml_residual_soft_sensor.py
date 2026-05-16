@@ -33,15 +33,18 @@ DML 正交残差软测量第二阶段脚本。
 from __future__ import annotations
 
 import argparse
+import copy
+import datetime as dt
 import json
 import logging
 import os
+import platform
 import random
 import sys
 import time
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -81,7 +84,7 @@ def _import_networkx():
 
 # ─── 随机种子 ─────────────────────────────────────────────────────────────────
 
-def set_seed(seed: int) -> None:
+def set_seed(seed: int, deterministic: bool = True, logger: Optional[logging.Logger] = None) -> None:
     random.seed(seed)
     np.random.seed(seed)
     try:
@@ -89,6 +92,14 @@ def set_seed(seed: int) -> None:
         torch.manual_seed(seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
+        if deterministic:
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+            try:
+                torch.use_deterministic_algorithms(True)
+            except Exception as e:
+                if logger is not None:
+                    logger.warning(f"启用 torch.use_deterministic_algorithms(True) 失败: {e}")
     except ImportError:
         pass
 
@@ -151,9 +162,52 @@ def load_config(config_path: str) -> dict:
         "dml_weight_value_col": "theta_std",
         "dml_weight_variable_col": "resolved_treatment",
         "dml_weight_recommended_col": "recommended_for_weight",
+        "constraints_enabled": True,
+        "use_counterfactual_constraint": False,
+        "counterfactual_lambda": 0.0,
+        "counterfactual_delta_std": 0.05,
+        "counterfactual_apply_to": "operation_A_only",
+        "counterfactual_min_abs_effect": 0.0,
+        "counterfactual_require_recommended": True,
+        "counterfactual_use_last_step_only": True,
+        "counterfactual_default_lag": 0,
+        "use_process_constraint": False,
+        "process_lambda": 0.0,
+        "process_delta_std": 0.05,
+        "process_require_dml_agree": True,
+        "process_use_in_train_default": False,
+        "process_use_in_eval_default": True,
+        "process_constraints": [],
+        "deterministic": True,
+        "save_run_manifest": True,
     }
     for k, v in defaults.items():
         cfg.setdefault(k, v)
+    return cfg
+
+
+def _parse_bool_cli(value: Optional[int]) -> Optional[bool]:
+    if value is None:
+        return None
+    return bool(int(value))
+
+
+def apply_cli_overrides(cfg: dict, args: argparse.Namespace) -> dict:
+    cfg = copy.deepcopy(cfg)
+    if args.use_counterfactual_constraint is not None:
+        cfg["use_counterfactual_constraint"] = _parse_bool_cli(args.use_counterfactual_constraint)
+    if args.counterfactual_lambda is not None:
+        cfg["counterfactual_lambda"] = float(args.counterfactual_lambda)
+    if args.use_process_constraint is not None:
+        cfg["use_process_constraint"] = _parse_bool_cli(args.use_process_constraint)
+    if args.process_lambda is not None:
+        cfg["process_lambda"] = float(args.process_lambda)
+    if args.random_seed is not None:
+        cfg["random_seed"] = int(args.random_seed)
+    if args.output_dir:
+        cfg["output_dir"] = str(args.output_dir)
+    if args.run_name:
+        cfg["run_name"] = str(args.run_name)
     return cfg
 
 
@@ -586,6 +640,419 @@ def make_windows(
     return np.array(xs, dtype=np.float32), np.array(ys, dtype=np.float32)
 
 
+def build_train_stats(Xw_train: np.ndarray, feature_cols: List[str]) -> Dict[str, dict]:
+    stats: Dict[str, dict] = {}
+    if Xw_train.size == 0:
+        return stats
+    for j, col in enumerate(feature_cols):
+        vals = Xw_train[:, :, j].reshape(-1)
+        if vals.size == 0:
+            continue
+        stats[col] = {
+            "q10": float(np.quantile(vals, 0.10)),
+            "q30": float(np.quantile(vals, 0.30)),
+            "q70": float(np.quantile(vals, 0.70)),
+            "q90": float(np.quantile(vals, 0.90)),
+            "min": float(np.min(vals)),
+            "max": float(np.max(vals)),
+        }
+    return stats
+
+
+def _normalize_bool(v: Any, default: bool = False) -> bool:
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        return v.strip().lower() in {"1", "true", "yes", "y"}
+    return default
+
+
+def _infer_dml_sign_map(dml_effect_df: pd.DataFrame) -> Dict[str, dict]:
+    dml_sign_map: Dict[str, dict] = {}
+    if dml_effect_df is None or dml_effect_df.empty:
+        return dml_sign_map
+    for _, r in dml_effect_df.iterrows():
+        var = str(r.get("variable", "")).strip()
+        if not var:
+            continue
+        eff = pd.to_numeric(pd.Series([r.get("theta_std", np.nan)]), errors="coerce").iloc[0]
+        if pd.isna(eff) or not np.isfinite(float(eff)):
+            continue
+        sign = int(np.sign(float(eff)))
+        if sign == 0:
+            continue
+        dml_sign_map[var] = {
+            "sign": sign,
+            "abs_effect": float(abs(float(eff))),
+            "recommended_for_weight": _normalize_bool(r.get("recommended_for_weight", False), default=False),
+            "selected_lag_min": r.get("selected_lag_min", np.nan),
+        }
+    return dml_sign_map
+
+
+def _resolve_rule_lag(raw_lag: Any, default_lag: int = 0) -> int:
+    try:
+        lag = int(float(raw_lag))
+        return max(0, lag)
+    except Exception:
+        return max(0, int(default_lag))
+
+
+def build_counterfactual_rules(
+    cfg: dict,
+    feature_cols: List[str],
+    a_cols: List[str],
+    dml_effect_df: pd.DataFrame,
+) -> List[dict]:
+    dml_sign_map = _infer_dml_sign_map(dml_effect_df)
+    require_recommended = bool(cfg.get("counterfactual_require_recommended", True))
+    min_abs_effect = float(cfg.get("counterfactual_min_abs_effect", 0.0))
+    apply_to = str(cfg.get("counterfactual_apply_to", "operation_A_only"))
+    default_lag = int(cfg.get("counterfactual_default_lag", 0))
+    use_last_step_only = bool(cfg.get("counterfactual_use_last_step_only", True))
+    delta_std = float(cfg.get("counterfactual_delta_std", 0.05))
+
+    if apply_to == "operation_A_only":
+        allowed = set(a_cols)
+    else:
+        allowed = set(feature_cols)
+
+    rules: List[dict] = []
+    for col in feature_cols:
+        if col not in allowed:
+            continue
+        dml_info = dml_sign_map.get(col)
+        if dml_info is None:
+            continue
+        if require_recommended and not dml_info.get("recommended_for_weight", False):
+            continue
+        if float(dml_info.get("abs_effect", 0.0)) < min_abs_effect:
+            continue
+        lag = _resolve_rule_lag(dml_info.get("selected_lag_min", default_lag), default_lag=default_lag)
+        if use_last_step_only:
+            lag = 0
+        rules.append({
+            "rule_name": f"cf_{col}",
+            "variable": col,
+            "direction": int(dml_info["sign"]),
+            "lag": int(lag),
+            "delta_std": delta_std,
+            "rule_weight": float(dml_info.get("abs_effect", 1.0)),
+            "use_in_train": True,
+            "use_in_eval": True,
+            "status": "trainable",
+            "reason": "",
+        })
+    return rules
+
+
+def _process_active_region_to_thresholds(active_region: dict, train_stats: Dict[str, dict], variable: str) -> dict:
+    region = active_region if isinstance(active_region, dict) else {"type": "all"}
+    rtype = str(region.get("type", "all"))
+    out = {"type": rtype}
+    st = train_stats.get(variable, {})
+    q_grid = np.array([0.10, 0.30, 0.70, 0.90], dtype=np.float64)
+    v_grid = np.array([
+        st.get("q10", st.get("min", -1.0)),
+        st.get("q30", st.get("q10", 0.0)),
+        st.get("q70", st.get("q90", 1.0)),
+        st.get("q90", st.get("max", 2.0)),
+    ], dtype=np.float64)
+    if np.any(~np.isfinite(v_grid)):
+        v_grid = np.array([st.get("min", -1.0), st.get("q30", 0.0), st.get("q70", 1.0), st.get("max", 2.0)], dtype=np.float64)
+    def _interp(q: float) -> float:
+        return float(np.interp(np.clip(q, 0.0, 1.0), q_grid, v_grid))
+
+    if rtype == "quantile_high":
+        q = float(region.get("q", 0.70))
+        out["min"] = _interp(q)
+    elif rtype == "quantile_low":
+        q = float(region.get("q", 0.30))
+        out["max"] = _interp(q)
+    elif rtype == "quantile_range":
+        low = float(region.get("low", 0.10))
+        high = float(region.get("high", 0.90))
+        out["min"] = _interp(low)
+        out["max"] = _interp(high)
+    elif rtype == "value_range":
+        out["min"] = region.get("min", None)
+        out["max"] = region.get("max", None)
+    return out
+
+
+def _active_region_mask_np(values: np.ndarray, region: dict) -> np.ndarray:
+    rtype = str((region or {}).get("type", "all"))
+    if rtype == "all":
+        return np.ones_like(values, dtype=bool)
+    if rtype in {"quantile_high", "quantile_low", "quantile_range", "value_range"}:
+        min_v = region.get("min", None)
+        max_v = region.get("max", None)
+        mask = np.ones_like(values, dtype=bool)
+        if min_v is not None:
+            mask = mask & (values >= float(min_v))
+        if max_v is not None:
+            mask = mask & (values <= float(max_v))
+        return mask
+    return np.ones_like(values, dtype=bool)
+
+
+def screen_process_rules(
+    cfg: dict,
+    feature_cols: List[str],
+    dml_effect_df: pd.DataFrame,
+    train_stats: Dict[str, dict],
+) -> pd.DataFrame:
+    raw_rules = cfg.get("process_constraints", []) or []
+    dml_sign_map = _infer_dml_sign_map(dml_effect_df)
+    default_require = bool(cfg.get("process_require_dml_agree", True))
+    default_lambda = float(cfg.get("process_lambda", 0.0))
+    default_delta = float(cfg.get("process_delta_std", 0.05))
+    default_train = bool(cfg.get("process_use_in_train_default", False))
+    default_eval = bool(cfg.get("process_use_in_eval_default", True))
+    rows: List[dict] = []
+
+    for i, r in enumerate(raw_rules):
+        rule = dict(r) if isinstance(r, dict) else {}
+        name = str(rule.get("name", f"process_rule_{i}"))
+        variable = str(rule.get("variable", "")).strip()
+        direction = int(rule.get("direction", 0)) if str(rule.get("direction", "")).strip() else 0
+        lag = _resolve_rule_lag(rule.get("lag", 0), default_lag=0)
+        require_dml = _normalize_bool(rule.get("require_dml_agree", default_require), default=default_require)
+        min_abs_dml = float(rule.get("min_abs_dml_effect", 0.0))
+        use_in_train = _normalize_bool(rule.get("use_in_train", default_train), default=default_train)
+        use_in_eval = _normalize_bool(rule.get("use_in_eval", default_eval), default=default_eval)
+        status, reason = "trainable", ""
+        dml_sign = None
+        dml_abs = None
+
+        if variable not in feature_cols:
+            status, reason = "rejected", "variable_missing"
+        elif direction not in (-1, 1):
+            status, reason = "rejected", "invalid_direction"
+        else:
+            dml_info = dml_sign_map.get(variable)
+            if dml_info is not None:
+                dml_sign = int(dml_info["sign"])
+                dml_abs = float(dml_info["abs_effect"])
+            if require_dml:
+                if dml_info is None:
+                    status, reason = "eval_only", "missing_dml_effect"
+                    use_in_train = False
+                elif dml_abs is not None and dml_abs < min_abs_dml:
+                    status, reason = "eval_only", "dml_effect_too_small"
+                    use_in_train = False
+                elif dml_sign != direction:
+                    status, reason = "eval_only", "dml_direction_conflict"
+                    use_in_train = False
+
+        active_region = _process_active_region_to_thresholds(
+            rule.get("active_region", {"type": "all"}),
+            train_stats=train_stats,
+            variable=variable,
+        )
+        rows.append({
+            "rule_name": name,
+            "variable": variable,
+            "direction": direction,
+            "lag": lag,
+            "delta_std": float(rule.get("delta_std", default_delta)),
+            "rule_lambda": float(rule.get("lambda", default_lambda)),
+            "require_dml_agree": require_dml,
+            "min_abs_dml_effect": min_abs_dml,
+            "use_in_train": bool(use_in_train),
+            "use_in_eval": bool(use_in_eval),
+            "status": status,
+            "reason": reason,
+            "dml_sign": dml_sign,
+            "dml_abs_effect": dml_abs,
+            "active_region": json.dumps(active_region, ensure_ascii=False),
+        })
+
+    return pd.DataFrame(rows)
+
+
+def evaluate_counterfactual_violations(
+    model: "LSTMRegressor",
+    X_eval: np.ndarray,
+    counterfactual_rules: List[dict],
+    feature_cols: List[str],
+) -> pd.DataFrame:
+    rows: List[dict] = []
+    if X_eval.size == 0:
+        return pd.DataFrame(rows)
+    y_original = model.predict(X_eval)
+    window_size = X_eval.shape[1]
+    feat_idx = {c: i for i, c in enumerate(feature_cols)}
+    for rule in counterfactual_rules:
+        var = rule.get("variable")
+        direction = int(rule.get("direction", 0))
+        lag = _resolve_rule_lag(rule.get("lag", 0), 0)
+        time_idx = window_size - 1 - lag
+        use_in_eval = bool(rule.get("use_in_eval", True))
+        status = str(rule.get("status", "trainable"))
+        reason = str(rule.get("reason", ""))
+        if not use_in_eval:
+            rows.append({
+                "rule_name": rule.get("rule_name", f"cf_{var}"),
+                "variable": var,
+                "direction": direction,
+                "lag": lag,
+                "effective_n": 0,
+                "violation_rate": np.nan,
+                "mean_violation_magnitude": np.nan,
+                "mean_expected_response": np.nan,
+                "use_in_train": bool(rule.get("use_in_train", True)),
+                "use_in_eval": use_in_eval,
+                "status": "disabled",
+                "reason": "use_in_eval_false",
+            })
+            continue
+        if (var not in feat_idx) or (direction not in (-1, 1)) or (time_idx < 0 or time_idx >= window_size):
+            rows.append({
+                "rule_name": rule.get("rule_name", f"cf_{var}"),
+                "variable": var,
+                "direction": direction,
+                "lag": lag,
+                "effective_n": 0,
+                "violation_rate": np.nan,
+                "mean_violation_magnitude": np.nan,
+                "mean_expected_response": np.nan,
+                "use_in_train": bool(rule.get("use_in_train", True)),
+                "use_in_eval": use_in_eval,
+                "status": "rejected" if status == "trainable" else status,
+                "reason": reason or "invalid_rule_or_lag",
+            })
+            continue
+
+        X_cf = X_eval.copy()
+        X_cf[:, time_idx, feat_idx[var]] += float(rule.get("delta_std", 0.05))
+        delta = model.predict(X_cf) - y_original
+        expected = direction * delta
+        violation = np.maximum(-expected, 0.0)
+        rows.append({
+            "rule_name": rule.get("rule_name", f"cf_{var}"),
+            "variable": var,
+            "direction": direction,
+            "lag": lag,
+            "effective_n": int(len(delta)),
+            "violation_rate": float(np.mean(expected < 0)) if len(expected) > 0 else np.nan,
+            "mean_violation_magnitude": float(np.mean(violation)) if len(violation) > 0 else np.nan,
+            "mean_expected_response": float(np.mean(expected)) if len(expected) > 0 else np.nan,
+            "use_in_train": bool(rule.get("use_in_train", True)),
+            "use_in_eval": use_in_eval,
+            "status": status,
+            "reason": reason,
+        })
+    return pd.DataFrame(rows)
+
+
+def evaluate_process_violations(
+    model: "LSTMRegressor",
+    X_eval: np.ndarray,
+    process_rules_df: pd.DataFrame,
+    feature_cols: List[str],
+) -> pd.DataFrame:
+    rows: List[dict] = []
+    if X_eval.size == 0:
+        return pd.DataFrame(rows)
+    if process_rules_df is None or process_rules_df.empty:
+        return pd.DataFrame(rows)
+    y_original = model.predict(X_eval)
+    window_size = X_eval.shape[1]
+    feat_idx = {c: i for i, c in enumerate(feature_cols)}
+    for _, rr in process_rules_df.iterrows():
+        rule = rr.to_dict()
+        var = str(rule.get("variable", ""))
+        direction = int(rule.get("direction", 0))
+        lag = _resolve_rule_lag(rule.get("lag", 0), 0)
+        time_idx = window_size - 1 - lag
+        region = json.loads(rule.get("active_region", "{}") or "{}")
+        status = str(rule.get("status", "trainable"))
+        reason = str(rule.get("reason", ""))
+        if not bool(rule.get("use_in_eval", True)):
+            rows.append({
+                "rule_name": rule.get("rule_name", f"process_{var}"),
+                "variable": var,
+                "direction": direction,
+                "lag": lag,
+                "effective_n": 0,
+                "violation_rate": np.nan,
+                "mean_violation_magnitude": np.nan,
+                "mean_expected_response": np.nan,
+                "use_in_train": bool(rule.get("use_in_train", False)),
+                "use_in_eval": False,
+                "status": "disabled",
+                "reason": "use_in_eval_false",
+            })
+            continue
+        if var not in feat_idx or direction not in (-1, 1) or (time_idx < 0 or time_idx >= window_size):
+            rows.append({
+                "rule_name": rule.get("rule_name", f"process_{var}"),
+                "variable": var,
+                "direction": direction,
+                "lag": lag,
+                "effective_n": 0,
+                "violation_rate": np.nan,
+                "mean_violation_magnitude": np.nan,
+                "mean_expected_response": np.nan,
+                "use_in_train": bool(rule.get("use_in_train", False)),
+                "use_in_eval": bool(rule.get("use_in_eval", True)),
+                "status": "rejected" if status == "trainable" else status,
+                "reason": reason or "invalid_rule_or_lag",
+            })
+            continue
+        v = X_eval[:, time_idx, feat_idx[var]]
+        mask = _active_region_mask_np(v, region)
+        effective_n = int(mask.sum())
+        if effective_n == 0:
+            rows.append({
+                "rule_name": rule.get("rule_name", f"process_{var}"),
+                "variable": var,
+                "direction": direction,
+                "lag": lag,
+                "effective_n": 0,
+                "violation_rate": np.nan,
+                "mean_violation_magnitude": np.nan,
+                "mean_expected_response": np.nan,
+                "use_in_train": bool(rule.get("use_in_train", False)),
+                "use_in_eval": bool(rule.get("use_in_eval", True)),
+                "status": status,
+                "reason": reason or "no_active_samples",
+            })
+            continue
+        X_proc = X_eval.copy()
+        X_proc[mask, time_idx, feat_idx[var]] += float(rule.get("delta_std", 0.05))
+        delta = model.predict(X_proc) - y_original
+        expected = direction * delta[mask]
+        violation = np.maximum(-expected, 0.0)
+        rows.append({
+            "rule_name": rule.get("rule_name", f"process_{var}"),
+            "variable": var,
+            "direction": direction,
+            "lag": lag,
+            "effective_n": effective_n,
+            "violation_rate": float(np.mean(expected < 0)) if len(expected) > 0 else np.nan,
+            "mean_violation_magnitude": float(np.mean(violation)) if len(violation) > 0 else np.nan,
+            "mean_expected_response": float(np.mean(expected)) if len(expected) > 0 else np.nan,
+            "use_in_train": bool(rule.get("use_in_train", False)),
+            "use_in_eval": bool(rule.get("use_in_eval", True)),
+            "status": status,
+            "reason": reason,
+        })
+    return pd.DataFrame(rows)
+
+
+def _aggregate_violation_metrics(df: pd.DataFrame) -> Tuple[float, float]:
+    if df is None or df.empty:
+        return float("nan"), float("nan")
+    valid = df[(df["effective_n"] > 0) & df["violation_rate"].notna()]
+    if valid.empty:
+        return float("nan"), float("nan")
+    return float(valid["violation_rate"].mean()), float(valid["mean_violation_magnitude"].mean())
+
+
 # ─── LSTM 模型 ────────────────────────────────────────────────────────────────
 
 class LSTMRegressor:
@@ -617,6 +1084,7 @@ class LSTMRegressor:
         self.seed = seed
         self._model = None
         self._device = None
+        self.loss_log_df = pd.DataFrame()
 
     def _build(self):
         torch, nn, DataLoader, TensorDataset = _import_torch()
@@ -647,37 +1115,149 @@ class LSTMRegressor:
         X_val: Optional[np.ndarray] = None,
         y_val: Optional[np.ndarray] = None,
         logger: Optional[logging.Logger] = None,
+        constraint_context: Optional[dict] = None,
     ) -> "LSTMRegressor":
         torch, nn, DataLoader, TensorDataset = _import_torch()
-        set_seed(self.seed)
+        constraint_context = constraint_context or {}
+        set_seed(
+            self.seed,
+            deterministic=bool(constraint_context.get("deterministic", True)),
+            logger=logger,
+        )
         model, device = self._build()
         self._device = device
 
         Xtr = torch.tensor(X_train, dtype=torch.float32)
         ytr = torch.tensor(y_train, dtype=torch.float32)
+        dl_generator = torch.Generator()
+        dl_generator.manual_seed(self.seed)
         loader = DataLoader(
             TensorDataset(Xtr, ytr),
             batch_size=self.batch_size,
             shuffle=True,
+            generator=dl_generator,
         )
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         criterion = nn.MSELoss()
+        relu = nn.ReLU()
 
         best_val_loss = float("inf")
         best_state = None
         no_improve = 0
+        loss_rows: List[dict] = []
+
+        feature_cols = constraint_context.get("feature_cols", [])
+        window_size = X_train.shape[1] if X_train.ndim == 3 else 0
+        feat_idx = {c: i for i, c in enumerate(feature_cols)}
+
+        use_cf = bool(constraint_context.get("use_counterfactual_constraint", False))
+        use_proc = bool(constraint_context.get("use_process_constraint", False))
+        cf_rules_in = constraint_context.get("counterfactual_rules", []) or []
+        proc_rules_in = constraint_context.get("process_rules", []) or []
+        cf_lambda = float(constraint_context.get("counterfactual_lambda", 0.0))
+        process_lambda = float(constraint_context.get("process_lambda", 0.0))
+
+        cf_rules = []
+        for r in cf_rules_in:
+            var = r.get("variable")
+            lag = _resolve_rule_lag(r.get("lag", 0), 0)
+            time_idx = window_size - 1 - lag
+            if var in feat_idx and 0 <= time_idx < window_size and int(r.get("direction", 0)) in (-1, 1):
+                rr = dict(r)
+                rr["feature_idx"] = feat_idx[var]
+                rr["time_idx"] = time_idx
+                cf_rules.append(rr)
+
+        proc_rules = []
+        if isinstance(proc_rules_in, pd.DataFrame):
+            proc_iter = [row.to_dict() for _, row in proc_rules_in.iterrows()]
+        else:
+            proc_iter = list(proc_rules_in)
+        for r in proc_iter:
+            var = r.get("variable")
+            lag = _resolve_rule_lag(r.get("lag", 0), 0)
+            time_idx = window_size - 1 - lag
+            if var in feat_idx and 0 <= time_idx < window_size and int(r.get("direction", 0)) in (-1, 1):
+                rr = dict(r)
+                rr["feature_idx"] = feat_idx[var]
+                rr["time_idx"] = time_idx
+                try:
+                    rr["active_region_parsed"] = json.loads(rr.get("active_region", "{}") or "{}")
+                except Exception:
+                    rr["active_region_parsed"] = {"type": "all"}
+                proc_rules.append(rr)
 
         for epoch in range(1, self.epochs + 1):
             model.train()
+            epoch_pred_loss = 0.0
+            epoch_cf_loss = 0.0
+            epoch_process_loss = 0.0
+            epoch_total_loss = 0.0
+            batches = 0
             for xb, yb in loader:
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
-                loss = criterion(model(xb), yb)
-                loss.backward()
+                y_original = model(xb)
+                pred_loss = criterion(y_original, yb)
+
+                cf_loss = torch.tensor(0.0, dtype=pred_loss.dtype, device=device)
+                if use_cf and cf_rules:
+                    cf_terms = []
+                    for r in cf_rules:
+                        xcf = xb.clone()
+                        xcf[:, r["time_idx"], r["feature_idx"]] += float(r.get("delta_std", 0.05))
+                        y_cf = model(xcf)
+                        delta_y = y_cf - y_original
+                        direction = float(int(r.get("direction", 1)))
+                        violation = -(direction * delta_y)
+                        rule_loss = torch.mean(relu(violation))
+                        weight = float(r.get("rule_weight", 1.0))
+                        cf_terms.append(rule_loss * weight)
+                    if cf_terms:
+                        cf_loss = torch.stack(cf_terms).mean()
+
+                process_loss = torch.tensor(0.0, dtype=pred_loss.dtype, device=device)
+                if use_proc and proc_rules:
+                    proc_terms = []
+                    for r in proc_rules:
+                        if str(r.get("status", "trainable")) != "trainable":
+                            continue
+                        if not bool(r.get("use_in_train", False)):
+                            continue
+                        values = xb[:, r["time_idx"], r["feature_idx"]]
+                        region = r.get("active_region_parsed", {"type": "all"})
+                        mask = torch.ones_like(values, dtype=torch.bool, device=device)
+                        min_v = region.get("min", None)
+                        max_v = region.get("max", None)
+                        if min_v is not None:
+                            mask = mask & (values >= float(min_v))
+                        if max_v is not None:
+                            mask = mask & (values <= float(max_v))
+                        if torch.sum(mask).item() <= 0:
+                            continue
+                        x_proc = xb.clone()
+                        x_proc[mask, r["time_idx"], r["feature_idx"]] += float(r.get("delta_std", 0.05))
+                        y_proc = model(x_proc)
+                        delta_y = y_proc - y_original
+                        direction = float(int(r.get("direction", 1)))
+                        violation = -(direction * delta_y[mask])
+                        rule_loss = torch.mean(relu(violation))
+                        proc_terms.append(rule_loss * float(r.get("rule_lambda", 0.0)))
+                    if proc_terms:
+                        process_loss = torch.stack(proc_terms).mean()
+
+                total_loss = pred_loss + (cf_lambda * cf_loss) + (process_lambda * process_loss)
+                total_loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
+                epoch_pred_loss += float(pred_loss.item())
+                epoch_cf_loss += float(cf_loss.item())
+                epoch_process_loss += float(process_loss.item())
+                epoch_total_loss += float(total_loss.item())
+                batches += 1
 
+            val_loss = float("nan")
             if X_val is not None and y_val is not None:
                 model.eval()
                 with torch.no_grad():
@@ -693,11 +1273,30 @@ class LSTMRegressor:
                     if no_improve >= self.patience:
                         if logger:
                             logger.info(f"  早停 @ epoch {epoch}，best_val_loss={best_val_loss:.6f}")
+                        denom = max(1, batches)
+                        loss_rows.append({
+                            "epoch": epoch,
+                            "train_pred_loss": epoch_pred_loss / denom,
+                            "train_cf_loss": epoch_cf_loss / denom,
+                            "train_process_loss": epoch_process_loss / denom,
+                            "train_total_loss": epoch_total_loss / denom,
+                            "val_loss": val_loss,
+                        })
                         break
+            denom = max(1, batches)
+            loss_rows.append({
+                "epoch": epoch,
+                "train_pred_loss": epoch_pred_loss / denom,
+                "train_cf_loss": epoch_cf_loss / denom,
+                "train_process_loss": epoch_process_loss / denom,
+                "train_total_loss": epoch_total_loss / denom,
+                "val_loss": val_loss,
+            })
 
         if best_state is not None:
             model.load_state_dict(best_state)
         self._model = model
+        self.loss_log_df = pd.DataFrame(loss_rows)
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
@@ -782,7 +1381,14 @@ def run_model0_baseline(
         patience=cfg["lstm_patience"],
         seed=cfg["random_seed"],
     )
-    model.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger)
+    model.fit(
+        Xw_tr,
+        yw_tr,
+        Xw_vl,
+        yw_vl,
+        logger=logger,
+        constraint_context={"deterministic": bool(cfg.get("deterministic", True))},
+    )
 
     y_pred_scaled = model.predict(Xw_te)
     y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).ravel()
@@ -862,7 +1468,14 @@ def run_model1_causal_input(
         patience=cfg["lstm_patience"],
         seed=cfg["random_seed"],
     )
-    model.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger)
+    model.fit(
+        Xw_tr,
+        yw_tr,
+        Xw_vl,
+        yw_vl,
+        logger=logger,
+        constraint_context={"deterministic": bool(cfg.get("deterministic", True))},
+    )
 
     y_pred_scaled = model.predict(Xw_te)
     y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).ravel()
@@ -1101,6 +1714,13 @@ def run_model2_dml_effect_weight_lstm(
             "feature_cols": [],
             "predictions_test": pd.DataFrame(),
             "dml_effect_weights": pd.DataFrame(),
+            "counterfactual_rules": pd.DataFrame(),
+            "process_rules": pd.DataFrame(),
+            "constraint_loss_log": pd.DataFrame(),
+            "counterfactual_metrics": pd.DataFrame(),
+            "process_metrics": pd.DataFrame(),
+            "use_counterfactual_constraint": False,
+            "use_process_constraint": False,
         }
 
     window_size = cfg["window_size"]
@@ -1379,6 +1999,24 @@ def run_model2_dml_effect_weight_lstm(
     Xw_vl, yw_vl = make_windows(X_vl, y_vl, window_size)
     Xw_te, yw_te = make_windows(X_te, y_te, window_size)
 
+    train_stats = build_train_stats(Xw_tr, feature_cols)
+    constraints_enabled = bool(cfg.get("constraints_enabled", True))
+    use_cf = constraints_enabled and bool(cfg.get("use_counterfactual_constraint", False))
+    use_process = constraints_enabled and bool(cfg.get("use_process_constraint", False))
+    counterfactual_rules = build_counterfactual_rules(cfg, feature_cols, a_cols, weights_df)
+    process_rules_df = screen_process_rules(cfg, feature_cols, weights_df, train_stats)
+    constraint_context = {
+        "feature_cols": feature_cols,
+        "counterfactual_rules": counterfactual_rules,
+        "process_rules": process_rules_df,
+        "train_stats": train_stats,
+        "use_counterfactual_constraint": use_cf,
+        "use_process_constraint": use_process,
+        "counterfactual_lambda": float(cfg.get("counterfactual_lambda", 0.0)),
+        "process_lambda": float(cfg.get("process_lambda", 0.0)),
+        "deterministic": bool(cfg.get("deterministic", True)),
+    }
+
     model = LSTMRegressor(
         input_size=len(feature_cols),
         hidden_size=cfg["lstm_hidden_size"],
@@ -1390,7 +2028,7 @@ def run_model2_dml_effect_weight_lstm(
         patience=cfg["lstm_patience"],
         seed=cfg["random_seed"],
     )
-    model.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger)
+    model.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger, constraint_context=constraint_context)
 
     y_pred_scaled = model.predict(Xw_te)
     y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).ravel()
@@ -1404,6 +2042,9 @@ def run_model2_dml_effect_weight_lstm(
     pred_path = output_dir / "dml_effect_weight_predictions_test.csv"
     predictions_test.to_csv(pred_path, index=False, encoding="utf-8-sig")
     logger.info(f"已保存: {pred_path}")
+
+    counterfactual_metrics = evaluate_counterfactual_violations(model, Xw_te, counterfactual_rules, feature_cols)
+    process_metrics = evaluate_process_violations(model, Xw_te, process_rules_df, feature_cols)
 
     return {
         "model_name": "dml_effect_weight_lstm",
@@ -1419,6 +2060,13 @@ def run_model2_dml_effect_weight_lstm(
         "dml_effect_file": "",
         "dml_effect_variable_col": var_col,
         "dml_effect_value_col": val_col,
+        "counterfactual_rules": pd.DataFrame(counterfactual_rules),
+        "process_rules": process_rules_df,
+        "constraint_loss_log": model.loss_log_df.copy(),
+        "counterfactual_metrics": counterfactual_metrics,
+        "process_metrics": process_metrics,
+        "use_counterfactual_constraint": use_cf,
+        "use_process_constraint": use_process,
     }
 
 
@@ -1435,6 +2083,7 @@ def run_model3_dml_residual(
     cfg: dict,
     logger: logging.Logger,
     output_dir: Path,
+    dml_effect_weights_df: Optional[pd.DataFrame] = None,
 ) -> dict:
     """
     Model 3: DML 残差软测量
@@ -1469,6 +2118,13 @@ def run_model3_dml_residual(
             "residual_feature_summary": pd.DataFrame(),
             "y_baseline_predictions": pd.DataFrame(),
             "predictions_test": pd.DataFrame(),
+            "counterfactual_rules": pd.DataFrame(),
+            "process_rules": pd.DataFrame(),
+            "constraint_loss_log": pd.DataFrame(),
+            "counterfactual_metrics": pd.DataFrame(),
+            "process_metrics": pd.DataFrame(),
+            "use_counterfactual_constraint": False,
+            "use_process_constraint": False,
         }
 
     if not residual_as_cols:
@@ -1489,6 +2145,13 @@ def run_model3_dml_residual(
             "residual_feature_summary": pd.DataFrame(),
             "y_baseline_predictions": pd.DataFrame(),
             "predictions_test": pd.DataFrame(),
+            "counterfactual_rules": pd.DataFrame(),
+            "process_rules": pd.DataFrame(),
+            "constraint_loss_log": pd.DataFrame(),
+            "counterfactual_metrics": pd.DataFrame(),
+            "process_metrics": pd.DataFrame(),
+            "use_counterfactual_constraint": False,
+            "use_process_constraint": False,
         }
 
     seed = cfg["random_seed"]
@@ -1590,6 +2253,25 @@ def run_model3_dml_residual(
     Xw_vl, yw_vl = make_windows(AS_res_val, y_res_val_scaled, window_size)
     Xw_te, yw_te = make_windows(AS_res_test, y_res_test_scaled, window_size)
 
+    dml_effect_weights_df = dml_effect_weights_df if dml_effect_weights_df is not None else pd.DataFrame()
+    train_stats = build_train_stats(Xw_tr, residual_as_cols)
+    constraints_enabled = bool(cfg.get("constraints_enabled", True))
+    use_cf = constraints_enabled and bool(cfg.get("use_counterfactual_constraint", False))
+    use_process = constraints_enabled and bool(cfg.get("use_process_constraint", False))
+    counterfactual_rules = build_counterfactual_rules(cfg, residual_as_cols, a_cols, dml_effect_weights_df)
+    process_rules_df = screen_process_rules(cfg, residual_as_cols, dml_effect_weights_df, train_stats)
+    constraint_context = {
+        "feature_cols": residual_as_cols,
+        "counterfactual_rules": counterfactual_rules,
+        "process_rules": process_rules_df,
+        "train_stats": train_stats,
+        "use_counterfactual_constraint": use_cf,
+        "use_process_constraint": use_process,
+        "counterfactual_lambda": float(cfg.get("counterfactual_lambda", 0.0)),
+        "process_lambda": float(cfg.get("process_lambda", 0.0)),
+        "deterministic": bool(cfg.get("deterministic", True)),
+    }
+
     # ── 步骤 6：训练残差 LSTM ─────────────────────────────────────────────
     logger.info("训练残差 LSTM: [A_res, S_res] 序列 -> y_res")
     residual_lstm = LSTMRegressor(
@@ -1603,7 +2285,14 @@ def run_model3_dml_residual(
         patience=cfg["lstm_patience"],
         seed=cfg["random_seed"],
     )
-    residual_lstm.fit(Xw_tr, yw_tr, Xw_vl, yw_vl, logger=logger)
+    residual_lstm.fit(
+        Xw_tr,
+        yw_tr,
+        Xw_vl,
+        yw_vl,
+        logger=logger,
+        constraint_context=constraint_context,
+    )
 
     # ── 步骤 7：最终预测 y_hat = y_base + y_res_hat ───────────────────────
     y_res_pred_scaled = residual_lstm.predict(Xw_te)
@@ -1635,6 +2324,13 @@ def run_model3_dml_residual(
         "y_pred": y_hat,
     })
 
+    counterfactual_metrics = evaluate_counterfactual_violations(
+        residual_lstm, Xw_te, counterfactual_rules, residual_as_cols
+    )
+    process_metrics = evaluate_process_violations(
+        residual_lstm, Xw_te, process_rules_df, residual_as_cols
+    )
+
     return {
         "model_name": "dml_residual_lstm",
         "metrics": metrics_final,
@@ -1651,19 +2347,65 @@ def run_model3_dml_residual(
         "residual_feature_summary": residual_feature_summary,
         "y_baseline_predictions": y_baseline_pred_df,
         "predictions_test": predictions_test,
+        "counterfactual_rules": pd.DataFrame(counterfactual_rules),
+        "process_rules": process_rules_df,
+        "constraint_loss_log": residual_lstm.loss_log_df.copy(),
+        "counterfactual_metrics": counterfactual_metrics,
+        "process_metrics": process_metrics,
+        "use_counterfactual_constraint": use_cf,
+        "use_process_constraint": use_process,
     }
+
+
+def build_run_manifest(cfg: dict, output_dir: Path, script_name: str) -> dict:
+    torch_version = None
+    cuda_available = False
+    try:
+        torch, *_ = _import_torch()
+        torch_version = torch.__version__
+        cuda_available = bool(torch.cuda.is_available())
+    except Exception:
+        pass
+    return {
+        "cfg": cfg,
+        "random_seed": int(cfg.get("random_seed", 42)),
+        "deterministic": bool(cfg.get("deterministic", True)),
+        "use_counterfactual_constraint": bool(cfg.get("use_counterfactual_constraint", False)),
+        "use_process_constraint": bool(cfg.get("use_process_constraint", False)),
+        "python_version": platform.python_version(),
+        "numpy_version": np.__version__,
+        "torch_version": torch_version,
+        "cuda_available": cuda_available,
+        "output_dir": str(output_dir),
+        "run_time": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "script_name": script_name,
+    }
+
+
+def _ensure_csv(
+    df: Optional[pd.DataFrame],
+    path: Path,
+    default_cols: Optional[List[str]] = None,
+) -> pd.DataFrame:
+    out_df = df.copy() if isinstance(df, pd.DataFrame) else pd.DataFrame()
+    if out_df.empty and default_cols:
+        out_df = pd.DataFrame(columns=default_cols)
+    out_df.to_csv(path, index=False, encoding="utf-8-sig")
+    return out_df
 
 
 # ─── 保存所有输出 ─────────────────────────────────────────────────────────────
 
 def save_outputs(
     output_dir: Path,
+    cfg: dict,
     roles_df: pd.DataFrame,
     model0: dict,
     model1: dict,
     model2: dict,
     model3: dict,
     logger: logging.Logger,
+    run_manifest: Optional[dict] = None,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1731,7 +2473,100 @@ def save_outputs(
     logger.info(f"已保存: {mc_path}")
     logger.info("\n" + metrics_df.to_string(index=False))
 
-    # 7. 保存模型权重和scalers
+    if run_manifest is None and bool(cfg.get("save_run_manifest", True)):
+        run_manifest = build_run_manifest(cfg, output_dir, Path(__file__).name)
+    if run_manifest is not None and bool(cfg.get("save_run_manifest", True)):
+        rm_path = output_dir / "run_manifest.json"
+        with open(rm_path, "w", encoding="utf-8") as f:
+            json.dump(run_manifest, f, ensure_ascii=False, indent=2)
+        logger.info(f"已保存: {rm_path}")
+
+    # 7. 约束相关输出（即使空也保存）
+    cf_cols = [
+        "rule_name", "variable", "direction", "lag", "effective_n",
+        "violation_rate", "mean_violation_magnitude", "mean_expected_response",
+        "use_in_train", "use_in_eval", "status", "reason",
+    ]
+    process_screen_cols = [
+        "rule_name", "variable", "direction", "lag", "delta_std", "rule_lambda",
+        "require_dml_agree", "min_abs_dml_effect", "use_in_train", "use_in_eval",
+        "status", "reason", "dml_sign", "dml_abs_effect", "active_region",
+    ]
+    loss_cols = [
+        "epoch", "train_pred_loss", "train_cf_loss", "train_process_loss",
+        "train_total_loss", "val_loss",
+    ]
+
+    m2_cf = _ensure_csv(
+        model2.get("counterfactual_metrics"),
+        output_dir / "counterfactual_violation_metrics_model2.csv",
+        default_cols=cf_cols,
+    )
+    m3_cf = _ensure_csv(
+        model3.get("counterfactual_metrics"),
+        output_dir / "counterfactual_violation_metrics_model3.csv",
+        default_cols=cf_cols,
+    )
+    m2_proc = _ensure_csv(
+        model2.get("process_metrics"),
+        output_dir / "process_violation_metrics_model2.csv",
+        default_cols=cf_cols,
+    )
+    m3_proc = _ensure_csv(
+        model3.get("process_metrics"),
+        output_dir / "process_violation_metrics_model3.csv",
+        default_cols=cf_cols,
+    )
+    _ensure_csv(
+        model2.get("process_rules"),
+        output_dir / "process_constraint_screening_model2.csv",
+        default_cols=process_screen_cols,
+    )
+    _ensure_csv(
+        model3.get("process_rules"),
+        output_dir / "process_constraint_screening_model3.csv",
+        default_cols=process_screen_cols,
+    )
+    _ensure_csv(
+        model2.get("constraint_loss_log"),
+        output_dir / "constraint_loss_log_model2.csv",
+        default_cols=loss_cols,
+    )
+    _ensure_csv(
+        model3.get("constraint_loss_log"),
+        output_dir / "constraint_loss_log_model3.csv",
+        default_cols=loss_cols,
+    )
+
+    cf_vr_m2, cf_mv_m2 = _aggregate_violation_metrics(m2_cf)
+    cf_vr_m3, cf_mv_m3 = _aggregate_violation_metrics(m3_cf)
+    pr_vr_m2, pr_mv_m2 = _aggregate_violation_metrics(m2_proc)
+    pr_vr_m3, pr_mv_m3 = _aggregate_violation_metrics(m3_proc)
+    cm_rows = []
+    for model_dict, cf_vr, pr_vr, cf_mv, pr_mv in [
+        (model2, cf_vr_m2, pr_vr_m2, cf_mv_m2, pr_mv_m2),
+        (model3, cf_vr_m3, pr_vr_m3, cf_mv_m3, pr_mv_m3),
+    ]:
+        mm = model_dict.get("metrics", {})
+        cm_rows.append({
+            "model_name": model_dict.get("model_name", "unknown"),
+            "use_counterfactual_constraint": model_dict.get("use_counterfactual_constraint", False),
+            "use_process_constraint": model_dict.get("use_process_constraint", False),
+            "MAE": mm.get("MAE", np.nan),
+            "RMSE": mm.get("RMSE", np.nan),
+            "R2": mm.get("R2", np.nan),
+            "CF_VR_mean": cf_vr,
+            "Process_VR_mean": pr_vr,
+            "CF_mean_violation": cf_mv,
+            "Process_mean_violation": pr_mv,
+            "random_seed": int(cfg.get("random_seed", 42)),
+        })
+    _ensure_csv(
+        pd.DataFrame(cm_rows),
+        output_dir / "constraint_metrics_compare.csv",
+    )
+
+    # 8. 保存模型权重和scalers
     import torch
     import pickle
 
@@ -1804,10 +2639,22 @@ def main():
         default="configs/residual_soft_sensor.yaml",
         help="配置文件路径（默认：configs/residual_soft_sensor.yaml）",
     )
+    parser.add_argument("--use-counterfactual-constraint", type=int, choices=[0, 1], default=None)
+    parser.add_argument("--counterfactual-lambda", type=float, default=None)
+    parser.add_argument("--use-process-constraint", type=int, choices=[0, 1], default=None)
+    parser.add_argument("--process-lambda", type=float, default=None)
+    parser.add_argument("--random-seed", type=int, default=None)
+    parser.add_argument("--output-dir", type=str, default=None)
+    parser.add_argument("--run-name", type=str, default=None)
     args = parser.parse_args()
 
     cfg = load_config(args.config)
+    cfg = apply_cli_overrides(cfg, args)
+
     output_dir = Path(cfg["output_dir"])
+    if cfg.get("run_name"):
+        output_dir = output_dir / str(cfg["run_name"])
+    cfg["output_dir"] = str(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     log_path = output_dir / "run_log.txt"
@@ -1819,7 +2666,11 @@ def main():
     logger.info(f"配置文件: {args.config}")
     logger.info(f"配置内容: {json.dumps(cfg, ensure_ascii=False, indent=2)}")
 
-    set_seed(cfg["random_seed"])
+    set_seed(
+        int(cfg["random_seed"]),
+        deterministic=bool(cfg.get("deterministic", True)),
+        logger=logger,
+    )
 
     # ── 1. 加载数据 ──────────────────────────────────────────────────────────
     df = load_data(cfg, logger)
@@ -1903,10 +2754,14 @@ def main():
     model3 = run_model3_dml_residual(
         train_df, val_df, test_df,
         c_cols, a_cols, s_cols, target_col, cfg, logger, output_dir,
+        dml_effect_weights_df=model2.get("dml_effect_weights", pd.DataFrame()),
     )
 
     # ── 9. 保存输出 ──────────────────────────────────────────────────────
-    save_outputs(output_dir, roles_df, model0, model1, model2, model3, logger)
+    run_manifest = None
+    if bool(cfg.get("save_run_manifest", True)):
+        run_manifest = build_run_manifest(cfg, output_dir, Path(__file__).name)
+    save_outputs(output_dir, cfg, roles_df, model0, model1, model2, model3, logger, run_manifest=run_manifest)
 
     # ── 10. 四模型测试指标摘要 ────────────────────────────────────────────
     logger.info("-" * 60)
