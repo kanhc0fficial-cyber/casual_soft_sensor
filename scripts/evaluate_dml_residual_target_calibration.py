@@ -363,23 +363,25 @@ def main() -> None:
     g_t = build_residualization_model(model_type, seed)
     g_t.fit(C_calib_scaled, y_calib_raw)
 
-    q_t_models: Dict[str, object] = {}
-    for j, col in enumerate(residual_as_cols):
-        qm_t = build_residualization_model(model_type, seed + j + 1)
-        qm_t.fit(C_calib_scaled, AS_calib_scaled[:, j])
-        q_t_models[col] = qm_t
-
     mode_to_variants = {
         "source": ["source"],
         "gt_only": ["gt_only"],
         "gt_qt": ["gt_qt"],
         "all": ["source", "gt_only", "gt_qt"],
     }
+    variants_to_run = mode_to_variants[args.mode]
+
+    q_t_models: Dict[str, object] = {}
+    if "gt_qt" in variants_to_run:
+        for j, col in enumerate(residual_as_cols):
+            qm_t = build_residualization_model(model_type, seed + j + 1)
+            qm_t.fit(C_calib_scaled, AS_calib_scaled[:, j])
+            q_t_models[col] = qm_t
 
     variant_rows = []
     all_pred_frames = []
 
-    for variant in mode_to_variants[args.mode]:
+    for variant in variants_to_run:
         if variant == "source":
             if g_model_source is None:
                 msg = "g_model missing in source components, source variant cannot run"
