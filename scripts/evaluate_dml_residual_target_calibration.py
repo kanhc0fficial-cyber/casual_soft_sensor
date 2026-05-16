@@ -263,13 +263,13 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _safe_name_from_path(path_str: str) -> str:
-    p = Path(path_str)
-    if p.stem:
-        return p.stem
     normalized = path_str.replace("\\", "/").rstrip("/")
     if not normalized:
         return "target"
-    return Path(normalized).name or "target"
+    last = normalized.split("/")[-1]
+    if "." in last:
+        return last.rsplit(".", 1)[0]
+    return last or "target"
 
 
 def _load_table(path: Path) -> pd.DataFrame:
