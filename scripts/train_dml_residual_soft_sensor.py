@@ -217,10 +217,13 @@ def load_data(cfg: dict, logger: logging.Logger) -> pd.DataFrame:
     data_path = Path(cfg["data_path"])
     if data_path.exists():
         logger.info(f"读取数据文件: {data_path}")
-        if data_path.suffix == ".parquet":
+        suffix = data_path.suffix.lower()
+        if suffix == ".parquet":
             df = pd.read_parquet(data_path)
-        elif data_path.suffix in (".csv", ".tsv"):
+        elif suffix == ".csv":
             df = pd.read_csv(data_path)
+        elif suffix == ".tsv":
+            df = pd.read_csv(data_path, sep="\t")
         else:
             raise ValueError(f"不支持的数据格式: {data_path.suffix}")
         logger.info(f"数据形状: {df.shape}")
@@ -588,6 +591,11 @@ def split_data(
     logger: logging.Logger,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """时序切分（不随机打乱）。"""
+    total_ratio = cfg["train_ratio"] + cfg["val_ratio"] + cfg["test_ratio"]
+    if not np.isclose(total_ratio, 1.0, atol=1e-4):
+        raise ValueError(
+            f"train_ratio + val_ratio + test_ratio 之和应为 1.0，当前为 {total_ratio:.4f}"
+        )
     n = len(df)
     tr = cfg["train_ratio"]
     vl = cfg["val_ratio"]
@@ -632,7 +640,14 @@ def make_windows(
     window_size: int,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """构造滑动窗口: X[i:i+w] -> y[i+w-1]。"""
+    if window_size <= 0:
+        raise ValueError(f"window_size={window_size} 非法，必须为正整数。")
     n = len(y)
+    if window_size > n:
+        raise ValueError(
+            f"window_size={window_size} 大于数据长度 {n}，无法构造任何窗口。"
+            "请减小 window_size 或增加数据量。"
+        )
     xs, ys = [], []
     for i in range(n - window_size + 1):
         xs.append(X[i: i + window_size])
