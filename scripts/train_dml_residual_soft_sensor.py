@@ -924,8 +924,8 @@ def _load_external_dml_effects(
         logger.warning(f"外部 DML 效应目录中未找到表格文件: {effect_dir}")
         return {}, None, None, None
 
-    var_candidates = ["variable", "treatment", "treatment_var", "operation_var", "treatment_variable"]
-    effect_candidates = ["effect", "theta", "causal_effect", "effect_value", "ate"]
+    var_candidates = ["variable", "treatment", "treatment_var", "operation_var", "treatment_variable", "变量名", "变量"]
+    effect_candidates = ["effect", "theta", "causal_effect", "effect_value", "ate", "dml效应系数", "效应系数", "dml_effect"]
 
     best = None
     a_cols_lc = {c.lower(): c for c in a_cols}
