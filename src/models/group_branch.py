@@ -172,6 +172,10 @@ class CausalGroupBranchModel(nn.Module):
         self.trainable_gate: bool = bool(model_cfg.get("trainable_gate", True))
         self.output_bias_flag: bool = bool(model_cfg.get("output_bias", True))
         gate_init: float = float(model_cfg.get("gate_init", 0.5))
+        if self.use_gate and not (0.0 <= gate_init <= 1.0):
+            raise ValueError(
+                f"gate_init={gate_init} 非法，启用 gate 时取值范围应在 [0, 1]。"
+            )
 
         # ── 配置校验 ─────────────────────────────────────────────────────────
         seen: Dict[int, str] = {}  # index -> first group that used it
