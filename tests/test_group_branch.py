@@ -16,9 +16,10 @@ import warnings
 from pathlib import Path
 from typing import List
 
-import numpy as np
 import pytest
-import torch
+
+np = pytest.importorskip("numpy")
+torch = pytest.importorskip("torch")
 
 # ── 路径设置 ──────────────────────────────────────────────────────────────────
 _REPO_ROOT = Path(__file__).resolve().parent.parent
