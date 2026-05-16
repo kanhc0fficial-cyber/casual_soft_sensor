@@ -85,4 +85,11 @@ lstm_lr: 0.001
 lstm_patience: 5
 
 random_seed: 42
+external_dml_effect_dir: "casual_soft_sensor\\dml_causal_effect_value\\结果\\20260516_062800"
+dml_effect_variable_col: null
+dml_effect_value_col: null
+dml_weight_clip_min: 0.3
+dml_weight_clip_max: 3.0
+state_weight_default: 1.0
+missing_effect_weight: 1.0
 allow_synthetic_demo: false
