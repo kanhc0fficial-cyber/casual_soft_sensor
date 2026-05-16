@@ -143,3 +143,26 @@ dml_weight_recommended_col: "recommended_for_weight"
 # 设为 true 时，若 data_path 文件不存在，脚本会自动使用合成演示数据运行。
 # 生产环境请保持 false，否则数据缺失时脚本会产出"伪成功"结果。
 allow_synthetic_demo: false
+
+# ── 约束配置（可用命令行覆盖用于消融）────────────────────────────────────────────
+constraints_enabled: true
+
+use_counterfactual_constraint: false
+counterfactual_lambda: 0.0
+counterfactual_delta_std: 0.05
+counterfactual_apply_to: operation_A_only
+counterfactual_min_abs_effect: 0.0
+counterfactual_require_recommended: true
+counterfactual_use_last_step_only: true
+counterfactual_default_lag: 0
+
+use_process_constraint: false
+process_lambda: 0.0
+process_delta_std: 0.05
+process_require_dml_agree: true
+process_use_in_train_default: false
+process_use_in_eval_default: true
+
+process_constraints: []
+deterministic: true
+save_run_manifest: true

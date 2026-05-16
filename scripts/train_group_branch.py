@@ -106,10 +106,13 @@ def load_data(cfg: dict, logger: logging.Logger) -> pd.DataFrame:
     data_path = Path(cfg["data_path"])
     if data_path.exists():
         logger.info(f"读取数据文件: {data_path}")
-        if data_path.suffix == ".parquet":
+        suffix = data_path.suffix.lower()
+        if suffix == ".parquet":
             df = pd.read_parquet(data_path)
-        elif data_path.suffix in (".csv", ".tsv"):
+        elif suffix == ".csv":
             df = pd.read_csv(data_path)
+        elif suffix == ".tsv":
+            df = pd.read_csv(data_path, sep="\t")
         else:
             raise ValueError(f"不支持的数据格式: {data_path.suffix}")
         logger.info(f"数据形状: {df.shape}")
@@ -375,6 +378,8 @@ def save_results(
     y_scaler,
     logger: logging.Logger,
 ) -> None:
+    import torch
+
     output_dir.mkdir(parents=True, exist_ok=True)
     group_names = model.group_names
 
@@ -422,16 +427,6 @@ def save_results(
     logger.info(f"已保存: {pred_path}")
     
     # ── 5. 保存模型权重 ──────────────────────────────────────────────────────
-    import torch
-    model_path = output_dir / "model_checkpoint.pt"
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'y_scaler_mean': y_scaler.mean_,
-        'y_scaler_scale': y_scaler.scale_,
-    }, model_path)
-    logger.info(f"已保存模型权重: {model_path}")
-    # ── 5. 保存模型权重 ──────────────────────────────────────────────────────
-    import torch
     model_path = output_dir / "model_checkpoint.pt"
     torch.save({
         'model_state_dict': model.state_dict(),

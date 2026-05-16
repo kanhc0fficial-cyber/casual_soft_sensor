@@ -244,6 +244,16 @@ class TestModelInit:
         gates = model.get_gates()
         assert not torch.any(torch.isnan(gates)), "gate 值不应包含 NaN"
 
+    @pytest.mark.parametrize("gate_init", [-0.1, 1.1])
+    def test_gate_init_out_of_range_raises(self, gate_init):
+        with pytest.raises(ValueError, match="gate_init=.*非法"):
+            CausalGroupBranchModel(
+                groups_cfg=_minimal_groups_cfg(indices=[0, 1, 2]),
+                model_cfg=_minimal_model_cfg(gate_init=gate_init),
+                window_size=6,
+                num_features=5,
+            )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ── 4. CausalGroupBranchModel forward 输出 ────────────────────────────────────
