@@ -1,0 +1,266 @@
+﻿variable,role,reason
+agg_mag_excit_voltage,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_excit_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_coil_temp,confounder_C,列名含工况关键词 'temp'
+agg_mag_tailings_valve1,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_tailings_valve2,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_blowdown_valve,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_pulsation_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_ring_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_flush_water_pressure,confounder_C,列名含工况关键词 'water'
+agg_mag_motor_current_rc,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_mag_motor_voltage_rc,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_pool_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_pool_valve_setpoint,state_S,非目标/操作/工况/排除变量，归入状态变量
+MC1_FET503_AI,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_feed_flow,confounder_C,列名含工况关键词 'feed'
+agg_tm_cyclone_pump_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_pump_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_sand_valve_setpoint,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_cyclone_sand_valve_feedback,confounder_C,列名含工况关键词 'feed'
+agg_tm_cyclone_sand_water_flow,confounder_C,列名含工况关键词 'water'
+agg_tm_motor_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+MC1_TM204_HDZC_1_WD_AI,state_S,非目标/操作/工况/排除变量，归入状态变量
+MC1_TM206_HDZC_2_WD_AI,state_S,非目标/操作/工况/排除变量，归入状态变量
+MC1_TM204_ZDJ_DZ_A_WD_AI,state_S,非目标/操作/工况/排除变量，归入状态变量
+MC1_TM206_ZDJ_DZ_B_WD_AI,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_reducer_oil_temp,confounder_C,列名含工况关键词 'temp'
+agg_tm_reducer_outlet_temp,confounder_C,列名含工况关键词 'temp'
+agg_tm_cyclone_overflow_pool_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+agg_tm_overflow_pump_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+lab_1_eryi_f200,excluded,在 exclude_cols 中
+lab_1_eryi_tfe,excluded,在 exclude_cols 中
+lab_2_eryi_f200,excluded,在 exclude_cols 中
+lab_2_eryi_tfe,excluded,在 exclude_cols 中
+lab_3_eryi_f200,excluded,在 exclude_cols 中
+lab_3_eryi_tfe,excluded,在 exclude_cols 中
+lab_mag_wm_conc_tfe,excluded,在 exclude_cols 中
+lab_mag_wm_tail_tfe,excluded,在 exclude_cols 中
+lab_mag_hm_conc_tfe,excluded,在 exclude_cols 中
+lab_mag_hm_tail_tfe,excluded,在 exclude_cols 中
+lab_mag_sw_conc_tfe,excluded,在 exclude_cols 中
+lab_mag_sw_tail_tfe,excluded,在 exclude_cols 中
+lab_mag_mixed_conc_tfe,excluded,在 exclude_cols 中
+lab_mag_tube_conc_tfe,excluded,在 exclude_cols 中
+lab_mag_tube_yield,excluded,在 exclude_cols 中
+lab_tm_feed_f325,excluded,在 exclude_cols 中
+lab_tm_discharge_f325,excluded,在 exclude_cols 中
+lab_tm_overflow_f325,excluded,在 exclude_cols 中
+lab_tm_overflow_tfe,excluded,在 exclude_cols 中
+lab_tm_overflow_conc,excluded,在 exclude_cols 中
+lab_tm_sand_f325,excluded,在 exclude_cols 中
+lab_flo_feed_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_feed_f325_s1,excluded,在 exclude_cols 中
+lab_flo_conc_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_tail_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_rough_conc_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_rough_tail_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_clean_tail_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_scav1_conc_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_scav1_tail_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_scav2_conc_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_scav2_tail_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_scav3_conc_tfe_s1,excluded,在 exclude_cols 中
+lab_flo_final_conc_yield_s1,excluded,在 exclude_cols 中
+lab_flo_final_conc_recovery_s1,excluded,在 exclude_cols 中
+lab_flo_feed_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_feed_f325_s2,excluded,在 exclude_cols 中
+lab_flo_conc_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_tail_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_rough_conc_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_rough_tail_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_clean_tail_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_scav1_conc_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_scav1_tail_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_scav2_conc_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_scav2_tail_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_scav3_conc_tfe_s2,excluded,在 exclude_cols 中
+lab_flo_final_conc_yield_s2,excluded,在 exclude_cols 中
+lab_flo_final_conc_recovery_s2,excluded,在 exclude_cols 中
+fx_nt1_motor_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_nt2_motor_current,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_nt1_underflow_density,confounder_C,列名含工况关键词 'density'
+fx_nt2_underflow_density,confounder_C,列名含工况关键词 'density'
+fx_s1_cx1_froth_h,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_cx1_level,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_cx1_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx1_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx1_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx1_air_sp,operation_A,人工指定操作变量
+fx_s1_cx1_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx2_froth_h,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_cx2_level,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_cx2_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx2_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx2_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx2_air_sp,operation_A,人工指定操作变量
+fx_s1_cx2_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_froth_h,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_cx3_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_air_sp,operation_A,人工指定操作变量
+fx_s1_cx3_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_froth_h,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_jx_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_air_flow,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_sx1_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_air_flow,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_sx3_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_froth_h,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_level_valve_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_level_valve_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_air_flow,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_air_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_bv_pos,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx1_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx2_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cx3_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_jx_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx1_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx2_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_sx3_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx1_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx2_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cx3_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_jx_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx1_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx2_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_sx3_motor_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_td_rough_freq,operation_A,人工指定操作变量
+fx_s1_td_rough_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_td_clean_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_td_clean_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_k6_rough_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_k6_rough_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_naoh_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_naoh_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cao_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_cao_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_td_rough_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_td_rough_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_td_clean_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_td_clean_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_k6_rough_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_k6_rough_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_naoh_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_naoh_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cao_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_cao_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_ph,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s2_ph,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk1_temp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk1_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk1_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk2_temp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk2_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk2_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk3_temp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk3_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_tk3_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk1_temp,confounder_C,列名含工况关键词 'temp'
+fx_s2_tk1_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk1_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk2_temp,confounder_C,列名含工况关键词 'temp'
+fx_s2_tk2_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk2_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk3_temp,confounder_C,列名含工况关键词 'temp'
+fx_s2_tk3_steam_sp,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_tk3_steam_fb,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_pool1_level,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool1_pump_freq,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool1_pump_curr,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool2_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_pool2_pump_freq,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool2_pump_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_pool3_level,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool3_pump_freq,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_pool3_pump_curr,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s2_pool1_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool1_pump_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool1_pump_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool2_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool2_pump_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool2_pump_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool3_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool3_pump_freq,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_pool3_pump_curr,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_blower1_pressure,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_blower2_pressure,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_ah5_power,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_ah6_power,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_ft1701,confounder_C,DAG 中 y 的祖先且非 A 后代/中介/对撞
+fx_s1_ft1702,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_ft2701,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_ft2702,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s1_k6_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+fx_s2_k6_level,state_S,非目标/操作/工况/排除变量，归入状态变量
+y_fx_xin1,target,目标变量
+y_fx_xin2,excluded,在 exclude_cols 中

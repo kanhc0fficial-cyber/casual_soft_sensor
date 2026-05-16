@@ -7,15 +7,67 @@
 # ==============================================================================
 
 # ── 数据路径 ──────────────────────────────────────────────────────────────────
-data_path: "data/modeling_dataset_xin2_final.parquet"
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
 output_dir: "results/group_branch"
 
 # ── 目标变量与时间列 ───────────────────────────────────────────────────────────
-target_col: "concentrate_grade"
-time_col: null             # 若为 null，按行序排列
+target_col: "y_fx_xin1"                 # 浮选系统1精矿品位
+time_col: "t"                           # 时间列
 
 # ── 排除列（不参与建模的列，如 ID、标签衍生列等） ────────────────────────────
-exclude_cols: []
+# 排除实验室化验数据（lab_开头）和另一个系统的目标变量
+exclude_cols:
+  - "y_fx_xin2"  # 排除系统2的目标变量
+  # 排除所有实验室化验数据（这些是离线数据，不适合实时软测量）
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
 
 # ── 数据切分比例（总计须为 1.0） ─────────────────────────────────────────────
 train_ratio: 0.70
@@ -37,7 +89,7 @@ random_seed: 42
 
 # ── 演示模式（默认关闭） ──────────────────────────────────────────────────────
 # 设为 true 时，若 data_path 文件不存在，脚本自动使用合成演示数据运行。
-allow_synthetic_demo: true
+allow_synthetic_demo: false
 
 # ── 特征重叠与未使用特征检查 ──────────────────────────────────────────────────
 # allow_feature_overlap: 同一特征索引是否允许出现在多个 group（默认 false）
@@ -49,29 +101,54 @@ warn_unused_features:  true
 # indices 是特征列在预处理后数据中的位置索引（从 0 开始）。
 # 训练脚本启动时会打印"特征列-索引"对照表，便于确认。
 #
-# 注意：以下索引对应合成演示数据的 7 个特征列（顺序如下）：
-#   0: env_temperature
-#   1: env_feed_rate
-#   2: op_reagent_flow
-#   3: op_air_flow
-#   4: state_foam_thickness
-#   5: state_pH_value
-#   6: state_level_sensor
-#
-# 若使用真实数据，请根据脚本打印的列序重新填写 indices。
+# 以下分组基于浮选系统1的工艺流程：
+# - 前处理：磁选和塔磨阶段的输出（给矿条件）
+# - 药剂控制：捕收剂、调整剂等药剂添加
+# - 粗选：粗选浮选槽的操作参数
+# - 精选：精选浮选槽的操作参数
+# - 扫选：扫选浮选槽的操作参数
+# - 温度控制：矿浆温度调节
+# - 辅助系统：泵池、pH等
 groups:
-  feed:
-    indices: [0, 1]
+  # 前处理阶段（磁选+塔磨）：给矿条件
+  preprocessing:
+    indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 30, 31, 32, 33]
     branch_type: "gru"
-    hidden_dim: 32
-
+    hidden_dim: 48
+  
+  # 药剂控制（捕收剂、调整剂、pH调节剂）
   reagent:
-    indices: [2, 3]
+    indices: [146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 166, 212]
     branch_type: "gru"
     hidden_dim: 32
-
-  state:
-    indices: [4, 5, 6]
+  
+  # 粗选浮选槽（cx1, cx2, cx3）
+  roughing:
+    indices: [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 132, 133, 134]
+    branch_type: "gru"
+    hidden_dim: 40
+  
+  # 精选浮选槽（jx）
+  cleaning:
+    indices: [55, 56, 57, 58, 59, 60, 61, 135]
+    branch_type: "gru"
+    hidden_dim: 32
+  
+  # 扫选浮选槽（sx1, sx2, sx3）
+  scavenging:
+    indices: [62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 136, 137, 138]
+    branch_type: "gru"
+    hidden_dim: 40
+  
+  # 温度控制（加温槽）
+  temperature:
+    indices: [168, 169, 170, 171, 172, 173, 174, 175, 176]
+    branch_type: "gru"
+    hidden_dim: 24
+  
+  # 辅助系统（泵池、鼓风机等）
+  auxiliary:
+    indices: [186, 187, 188, 189, 190, 191, 192, 193, 194, 204, 205, 206, 207, 208, 209]
     branch_type: "gru"
     hidden_dim: 32
 

@@ -420,6 +420,30 @@ def save_results(
     pred_path = output_dir / "predictions_test.csv"
     pred_df.to_csv(pred_path, index=False, encoding="utf-8-sig")
     logger.info(f"已保存: {pred_path}")
+    
+    # ── 5. 保存模型权重 ──────────────────────────────────────────────────────
+    import torch
+    model_path = output_dir / "model_checkpoint.pt"
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'y_scaler_mean': y_scaler.mean_,
+        'y_scaler_scale': y_scaler.scale_,
+    }, model_path)
+    logger.info(f"已保存模型权重: {model_path}")
+    # ── 5. 保存模型权重 ──────────────────────────────────────────────────────
+    import torch
+    model_path = output_dir / "model_checkpoint.pt"
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'y_scaler_mean': y_scaler.mean_,
+        'y_scaler_scale': y_scaler.scale_,
+    }, model_path)
+    logger.info(f"已保存模型权重: {model_path}")
+    
+    # ── 6. 保存最佳超参数（如果是Optuna优化的结果）──────────────────────────
+    best_params_path = output_dir / "best_params.json"
+    if best_params_path.exists():
+        logger.info(f"最佳超参数已保存在: {best_params_path}")
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────

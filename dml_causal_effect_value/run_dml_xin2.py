@@ -3,15 +3,15 @@
 """
 dml_causal_effect_value/run_dml_xin2.py
 ========================================
-双重机器学习（Double Machine Learning, DML）求新二线浮选精矿品位因果效应系数 θ
+双重机器学习（Double Machine Learning, DML）求新一线浮选精矿品位因果效应系数 θ
 
 模型形式（Partial Linear Model）：
     Y = θ · T + g(X) + ε
     T = f(X) + η
 
 其中：
-    Y = y_fx_xin2          （新二线精矿 TFe 品位，稀疏化验标签）
-    T = 用户指定的处理变量    （默认：新二线一粗气流量设定 fx_s2_cx1_air_sp）
+    Y = y_fx_xin1          （新一线精矿 TFe 品位，稀疏化验标签）
+    T = 用户指定的处理变量    （默认：新一线一粗气流量设定 fx_s1_cx1_air_sp）
     X = 混杂变量集           （去除 Y、T 及同线化验泄漏列后的所有过程变量）
 
 估计方法：Cross-fitting DML（Chernozhukov et al., 2018）
@@ -35,14 +35,14 @@ dml_causal_effect_value/run_dml_xin2.py
     SIMULATION_DATASET 指定，可通过 --dataset 参数覆盖。
 
 输出：
-    dml_causal_effect_value/结果/<timestamp>/dml_theta_xin2.csv  — θ 点估计与置信区间
-    dml_causal_effect_value/结果/<timestamp>/residuals_xin2.csv  — 残差序列（用于诊断）
-    dml_causal_effect_value/结果/<timestamp>/residual_scatter_xin2.png — 残差散点图
+    dml_causal_effect_value/结果/<timestamp>/dml_theta_xin1.csv  — θ 点估计与置信区间
+    dml_causal_effect_value/结果/<timestamp>/residuals_xin1.csv  — 残差序列（用于诊断）
+    dml_causal_effect_value/结果/<timestamp>/residual_scatter_xin1.png — 残差散点图
 
 运行示例：
     python dml_causal_effect_value/run_dml_xin2.py \\
         --dataset path/to/simulation.parquet \\
-        --treatment fx_s2_cx1_air_sp \\
+        --treatment fx_s1_cx1_air_sp \\
         --n-folds 5
 """
 
@@ -80,7 +80,7 @@ _RUN_TAG     = datetime.now().strftime("%Y%m%d_%H%M%S")
 RESULT_DIR   = os.path.join(_BASE_RESULT, _RUN_TAG)
 
 # 默认数据集路径（与 soft_measurement.py 保持一致）
-SIMULATION_DATASET = r"C:\Users\goldenwhale\Downloads\my_mining_simulation\output\simulation_10months_rerun_20260514_openloop.parquet"
+SIMULATION_DATASET = r"C:\Users\goldenwhale\Downloads\my_mining_simulation\output\simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  全局超参数
@@ -100,9 +100,9 @@ HGBDT_L2_REG           = 0.05
 HGBDT_MAX_TRAIN        = 50000   # 每折最大训练样本数
 
 # 目标变量与数据列
-Y_COL            = "y_fx_xin2"
-OTHER_Y_COL      = "y_fx_xin1"
-DEFAULT_TREATMENT = "fx_s2_cx1_air_sp"
+Y_COL            = "y_fx_xin1"
+OTHER_Y_COL      = "y_fx_xin2"
+DEFAULT_TREATMENT = "fx_s1_cx1_air_sp"
 FORBIDDEN_LAB_PREFIXES = ("lab_flo_",)
 
 
@@ -454,7 +454,7 @@ def save_results(result: dict, treatment_col: str, df_index: pd.DatetimeIndex,
         "折数 K":           n_folds,
         "基学习器":         "HistGBDT-Temporal",
     }])
-    theta_csv = os.path.join(RESULT_DIR, "dml_theta_xin2.csv")
+    theta_csv = os.path.join(RESULT_DIR, "dml_theta_xin1.csv")
     summary.to_csv(theta_csv, index=False, encoding="utf-8-sig")
     print(f"[保存] θ 汇总：{theta_csv}")
 
@@ -469,7 +469,7 @@ def save_results(result: dict, treatment_col: str, df_index: pd.DatetimeIndex,
         "T_hat":      result["T_hat"],
         "T_residual": result["T_residuals"],
     })
-    res_csv = os.path.join(RESULT_DIR, "residuals_xin2.csv")
+    res_csv = os.path.join(RESULT_DIR, "residuals_xin1.csv")
     res_df.to_csv(res_csv, index=False, encoding="utf-8-sig")
     print(f"[保存] 残差序列：{res_csv}")
 
@@ -481,7 +481,7 @@ def save_results(result: dict, treatment_col: str, df_index: pd.DatetimeIndex,
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(
-        f"DML 残差诊断 — 新二线 ({Y_COL})\n"
+        f"DML 残差诊断 — 新一线 ({Y_COL})\n"
         f"θ = {result['theta']:.4f}  "
         f"95% CI = [{result['ci_lo']:.4f}, {result['ci_hi']:.4f}]",
         fontsize=12,
@@ -513,7 +513,7 @@ def save_results(result: dict, treatment_col: str, df_index: pd.DatetimeIndex,
     ax2.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    fig_path = os.path.join(RESULT_DIR, "residual_scatter_xin2.png")
+    fig_path = os.path.join(RESULT_DIR, "residual_scatter_xin1.png")
     plt.savefig(fig_path, dpi=120, bbox_inches="tight")
     plt.close()
     print(f"[保存] 残差散点图：{fig_path}")
@@ -525,7 +525,7 @@ def save_results(result: dict, treatment_col: str, df_index: pd.DatetimeIndex,
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="HistGBDT-Temporal DML 因果效应估计（新二线浮选精矿品位）"
+        description="HistGBDT-Temporal DML 因果效应估计（新一线浮选精矿品位）"
     )
     parser.add_argument(
         "--dataset",
@@ -537,8 +537,8 @@ def parse_args():
         default=DEFAULT_TREATMENT,
         help=(
             f"处理变量列名（默认：{DEFAULT_TREATMENT}）。"
-            " 常用选项：fx_s2_cx1_air_sp, fx_s2_td_rough_freq, "
-            "fx_s2_naoh_freq, fx_s2_cao_freq 等"
+            " 常用选项：fx_s1_cx1_air_sp, fx_s1_td_rough_freq, "
+            "fx_s1_naoh_freq, fx_s1_cao_freq 等"
         ),
     )
     parser.add_argument(
@@ -559,7 +559,7 @@ def main():
     treatment_col = args.treatment
 
     print("=" * 65)
-    print("  HistGBDT-Temporal DML — 新二线浮选精矿品位因果效应估计")
+    print("  HistGBDT-Temporal DML — 新一线浮选精矿品位因果效应估计")
     print(f"  结果变量 Y : {Y_COL}")
     print(f"  处理变量 T : {treatment_col}")
     print(f"  Cross-fitting K : {N_FOLDS}")

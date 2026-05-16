@@ -1,0 +1,4 @@
+node,variable,lag,edge_score,edge_type
+fx_s1_cx1_froth_h,fx_s1_cx1_froth_h,,0.0412224531173706,directed
+fx_s1_sx3_froth_h,fx_s1_sx3_froth_h,,0.0324013829231262,directed
+fx_s1_jx_froth_h,fx_s1_jx_froth_h,,0.0271414704620838,directed

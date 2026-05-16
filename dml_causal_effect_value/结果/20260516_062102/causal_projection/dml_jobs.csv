@@ -1,0 +1,4 @@
+treatment,treatment_variable,treatment_lag,outcome,adjustment_set
+fx_s1_cx1_froth_h,fx_s1_cx1_froth_h,,y_fx_xin1,fx_s1_jx_froth_h;fx_s1_sx3_froth_h
+fx_s1_sx3_froth_h,fx_s1_sx3_froth_h,,y_fx_xin1,fx_blower1_pressure;fx_s1_cx1_froth_h;fx_s1_jx_froth_h;fx_s1_ph;fx_s1_sx1_air_flow;fx_s1_sx3_air_flow;fx_s1_td_rough_freq
+fx_s1_jx_froth_h,fx_s1_jx_froth_h,,y_fx_xin1,fx_s1_cx1_froth_h;fx_s1_sx3_froth_h

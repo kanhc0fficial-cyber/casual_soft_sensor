@@ -1,4 +1,8 @@
 ﻿group,gate_value
-feed,0.50932324
-reagent,0.53506106
-state,0.51277953
+preprocessing,0.50650555
+reagent,0.49967584
+roughing,0.51980215
+cleaning,0.5002211
+scavenging,0.52646047
+temperature,0.48996612
+auxiliary,0.4846245

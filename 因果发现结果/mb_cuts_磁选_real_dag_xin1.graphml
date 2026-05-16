@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d0" for="edge" attr.name="weight" attr.type="double"/>
+<graph edgedefault="directed"><node id="agg_mag_excit_voltage"/>
+<node id="agg_mag_tailings_valve1"/>
+<node id="agg_mag_tailings_valve2"/>
+<node id="agg_mag_blowdown_valve"/>
+<node id="agg_mag_pulsation_freq"/>
+<node id="agg_mag_ring_freq"/>
+<node id="agg_mag_level"/>
+<node id="agg_mag_flush_water_pressure"/>
+<node id="agg_mag_motor_current_rc"/>
+<node id="agg_mag_motor_voltage_rc"/>
+<node id="y_grade"/>
+<edge source="agg_mag_tailings_valve2" target="agg_mag_tailings_valve1">
+  <data key="d0">0.09283804893493652</data>
+</edge>
+<edge source="agg_mag_level" target="agg_mag_tailings_valve1">
+  <data key="d0">0.7463034987449646</data>
+</edge>
+<edge source="agg_mag_motor_current_rc" target="agg_mag_tailings_valve1">
+  <data key="d0">0.040825679898262024</data>
+</edge>
+</graph></graphml>

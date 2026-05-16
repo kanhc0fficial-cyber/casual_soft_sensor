@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d0" for="edge" attr.name="weight" attr.type="double"/>
+<graph edgedefault="directed"><node id="agg_tm_cyclone_pool_level"/>
+<node id="agg_tm_cyclone_feed_flow"/>
+<node id="agg_tm_cyclone_sand_valve_setpoint"/>
+<node id="agg_tm_cyclone_sand_water_flow"/>
+<node id="agg_tm_motor_current"/>
+<node id="MC1_TM204_HDZC_1_WD_AI"/>
+<node id="MC1_TM206_HDZC_2_WD_AI"/>
+<node id="MC1_TM204_ZDJ_DZ_A_WD_AI"/>
+<node id="MC1_TM206_ZDJ_DZ_B_WD_AI"/>
+<node id="agg_tm_reducer_oil_temp"/>
+<node id="agg_tm_reducer_outlet_temp"/>
+<node id="agg_tm_cyclone_overflow_pool_level"/>
+<node id="agg_tm_overflow_pump_current"/>
+<node id="y_grade"/>
+<edge source="agg_tm_cyclone_feed_flow" target="agg_tm_motor_current">
+  <data key="d0">0.6400105357170105</data>
+</edge>
+<edge source="agg_tm_cyclone_feed_flow" target="MC1_TM204_HDZC_1_WD_AI">
+  <data key="d0">0.09644759446382523</data>
+</edge>
+<edge source="agg_tm_cyclone_feed_flow" target="MC1_TM204_ZDJ_DZ_A_WD_AI">
+  <data key="d0">0.38708412647247314</data>
+</edge>
+<edge source="agg_tm_cyclone_feed_flow" target="MC1_TM206_ZDJ_DZ_B_WD_AI">
+  <data key="d0">0.5691536068916321</data>
+</edge>
+<edge source="agg_tm_cyclone_feed_flow" target="agg_tm_cyclone_overflow_pool_level">
+  <data key="d0">0.025311728939414024</data>
+</edge>
+<edge source="agg_tm_cyclone_feed_flow" target="agg_tm_overflow_pump_current">
+  <data key="d0">0.23504137992858887</data>
+</edge>
+<edge source="MC1_TM204_HDZC_1_WD_AI" target="agg_tm_cyclone_sand_valve_setpoint">
+  <data key="d0">0.043213650584220886</data>
+</edge>
+<edge source="MC1_TM204_HDZC_1_WD_AI" target="agg_tm_cyclone_sand_water_flow">
+  <data key="d0">0.07333202660083771</data>
+</edge>
+<edge source="MC1_TM204_HDZC_1_WD_AI" target="agg_tm_cyclone_overflow_pool_level">
+  <data key="d0">0.03499672934412956</data>
+</edge>
+<edge source="MC1_TM204_HDZC_1_WD_AI" target="agg_tm_overflow_pump_current">
+  <data key="d0">0.025909822434186935</data>
+</edge>
+<edge source="MC1_TM206_HDZC_2_WD_AI" target="agg_tm_cyclone_overflow_pool_level">
+  <data key="d0">0.05553874373435974</data>
+</edge>
+<edge source="MC1_TM204_ZDJ_DZ_A_WD_AI" target="MC1_TM206_ZDJ_DZ_B_WD_AI">
+  <data key="d0">0.09582775086164474</data>
+</edge>
+<edge source="MC1_TM204_ZDJ_DZ_A_WD_AI" target="agg_tm_reducer_oil_temp">
+  <data key="d0">0.07090502232313156</data>
+</edge>
+<edge source="MC1_TM204_ZDJ_DZ_A_WD_AI" target="agg_tm_reducer_outlet_temp">
+  <data key="d0">0.04343074560165405</data>
+</edge>
+<edge source="MC1_TM204_ZDJ_DZ_A_WD_AI" target="agg_tm_cyclone_overflow_pool_level">
+  <data key="d0">0.03036852367222309</data>
+</edge>
+<edge source="MC1_TM204_ZDJ_DZ_A_WD_AI" target="agg_tm_overflow_pump_current">
+  <data key="d0">0.06856837868690491</data>
+</edge>
+<edge source="MC1_TM206_ZDJ_DZ_B_WD_AI" target="agg_tm_cyclone_overflow_pool_level">
+  <data key="d0">0.04623941704630852</data>
+</edge>
+<edge source="agg_tm_reducer_oil_temp" target="MC1_TM206_HDZC_2_WD_AI">
+  <data key="d0">0.10277987271547318</data>
+</edge>
+<edge source="agg_tm_reducer_oil_temp" target="MC1_TM206_ZDJ_DZ_B_WD_AI">
+  <data key="d0">0.06047743558883667</data>
+</edge>
+<edge source="agg_tm_reducer_oil_temp" target="agg_tm_overflow_pump_current">
+  <data key="d0">0.049508921802043915</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="agg_tm_cyclone_sand_water_flow">
+  <data key="d0">0.02357967384159565</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="MC1_TM204_HDZC_1_WD_AI">
+  <data key="d0">0.1919981986284256</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="MC1_TM206_HDZC_2_WD_AI">
+  <data key="d0">0.06808792054653168</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="MC1_TM206_ZDJ_DZ_B_WD_AI">
+  <data key="d0">0.03774549812078476</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="agg_tm_reducer_oil_temp">
+  <data key="d0">0.21104004979133606</data>
+</edge>
+<edge source="agg_tm_reducer_outlet_temp" target="agg_tm_overflow_pump_current">
+  <data key="d0">0.050009213387966156</data>
+</edge>
+</graph></graphml>

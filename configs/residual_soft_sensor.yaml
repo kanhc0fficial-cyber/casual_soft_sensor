@@ -4,21 +4,94 @@
 # ==============================================================================
 
 # ── 数据路径 ──────────────────────────────────────────────────────────────────
-data_path: "data/modeling_dataset_xin2_final.parquet"
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
 dag_path: "data/features/global_edges.csv"
 output_dir: "results/residual_soft_sensor"
 
 # ── 目标变量与时间列 ───────────────────────────────────────────────────────────
-target_col: "concentrate_grade"
-time_col: null                          # 若为 null，则按行序排列（不用时间解析）
+target_col: "y_fx_xin1"                 # 浮选系统1精矿品位
+time_col: "t"                           # 时间列
 
 # ── 操作变量（人工指定，必填） ───────────────────────────────────────────────
-# 必须手工填写真实数据中已知的操作变量名；当前版本不支持真实数据下自动推断。
-# 若使用合成演示数据（allow_synthetic_demo: true），可留空，脚本会自动填入示例列名。
-operation_vars: []
+# 浮选系统1的关键操作变量：药剂添加、充气量、液位控制、温度控制
+operation_vars:
+  # 药剂添加频率（捕收剂、调整剂）
+  - "fx_s1_td_rough_freq"
+  - "fx_s1_naoh_freq"
+  - "fx_s1_cao_freq"
+  # 粗选浮选槽充气量设定
+  - "fx_s1_cx1_air_sp"
+  - "fx_s1_cx2_air_sp"
+  - "fx_s1_cx3_air_sp"
+  # 精选浮选槽充气量设定
+  - "fx_s1_jx_air_sp"
+  # 扫选浮选槽充气量设定
+  - "fx_s1_sx1_air_sp"
+  - "fx_s1_sx2_air_sp"
+  - "fx_s1_sx3_air_sp"
+  # 液位阀门设定
+  - "fx_s1_cx1_level_valve_sp"
+  - "fx_s1_cx2_level_valve_sp"
+  - "fx_s1_cx3_level_valve_sp"
+  # 温度控制（蒸汽设定）
+  - "fx_s1_tk1_steam_sp"
+  - "fx_s1_tk2_steam_sp"
+  - "fx_s1_tk3_steam_sp"
 
 # ── 排除列（不参与任何建模的列，如 ID、标签衍生列等） ───────────────────────
-exclude_cols: []
+# 排除实验室化验数据（lab_开头）和另一个系统的目标变量
+exclude_cols:
+  - "y_fx_xin2"  # 排除系统2的目标变量
+  # 排除所有实验室化验数据（这些是离线数据，不适合实时软测量）
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
 
 # ── 数据切分比例（总计须为 1.0） ─────────────────────────────────────────────
 train_ratio: 0.70

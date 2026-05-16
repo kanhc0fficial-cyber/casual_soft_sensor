@@ -1,15 +1,83 @@
-2026-05-14 14:29:41,893 | INFO | ============================================================
-2026-05-14 14:29:41,893 | INFO | DML 正交残差软测量  train_dml_residual_soft_sensor.py
-2026-05-14 14:29:41,893 | INFO | ============================================================
-2026-05-14 14:29:41,893 | INFO | 配置文件: configs/residual_soft_sensor.yaml
-2026-05-14 14:29:41,893 | INFO | 配置内容: {
-  "data_path": "data/modeling_dataset_xin2_final.parquet",
+2026-05-15 22:59:13,286 | INFO | ============================================================
+2026-05-15 22:59:13,286 | INFO | DML 正交残差软测量  train_dml_residual_soft_sensor.py
+2026-05-15 22:59:13,287 | INFO | ============================================================
+2026-05-15 22:59:13,287 | INFO | 配置文件: configs/residual_soft_sensor.yaml
+2026-05-15 22:59:13,287 | INFO | 配置内容: {
+  "data_path": "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet",
   "dag_path": "data/features/global_edges.csv",
   "output_dir": "results/residual_soft_sensor",
-  "target_col": "concentrate_grade",
-  "time_col": null,
-  "operation_vars": [],
-  "exclude_cols": [],
+  "target_col": "y_fx_xin1",
+  "time_col": "t",
+  "operation_vars": [
+    "fx_s1_td_rough_freq",
+    "fx_s1_naoh_freq",
+    "fx_s1_cao_freq",
+    "fx_s1_cx1_air_sp",
+    "fx_s1_cx2_air_sp",
+    "fx_s1_cx3_air_sp",
+    "fx_s1_jx_air_sp",
+    "fx_s1_sx1_air_sp",
+    "fx_s1_sx2_air_sp",
+    "fx_s1_sx3_air_sp",
+    "fx_s1_cx1_level_valve_sp",
+    "fx_s1_cx2_level_valve_sp",
+    "fx_s1_cx3_level_valve_sp",
+    "fx_s1_tk1_steam_sp",
+    "fx_s1_tk2_steam_sp",
+    "fx_s1_tk3_steam_sp"
+  ],
+  "exclude_cols": [
+    "y_fx_xin2",
+    "lab_1_eryi_f200",
+    "lab_1_eryi_tfe",
+    "lab_2_eryi_f200",
+    "lab_2_eryi_tfe",
+    "lab_3_eryi_f200",
+    "lab_3_eryi_tfe",
+    "lab_mag_wm_conc_tfe",
+    "lab_mag_wm_tail_tfe",
+    "lab_mag_hm_conc_tfe",
+    "lab_mag_hm_tail_tfe",
+    "lab_mag_sw_conc_tfe",
+    "lab_mag_sw_tail_tfe",
+    "lab_mag_mixed_conc_tfe",
+    "lab_mag_tube_conc_tfe",
+    "lab_mag_tube_yield",
+    "lab_tm_feed_f325",
+    "lab_tm_discharge_f325",
+    "lab_tm_overflow_f325",
+    "lab_tm_overflow_tfe",
+    "lab_tm_overflow_conc",
+    "lab_tm_sand_f325",
+    "lab_flo_feed_tfe_s1",
+    "lab_flo_feed_f325_s1",
+    "lab_flo_conc_tfe_s1",
+    "lab_flo_tail_tfe_s1",
+    "lab_flo_rough_conc_tfe_s1",
+    "lab_flo_rough_tail_tfe_s1",
+    "lab_flo_clean_tail_tfe_s1",
+    "lab_flo_scav1_conc_tfe_s1",
+    "lab_flo_scav1_tail_tfe_s1",
+    "lab_flo_scav2_conc_tfe_s1",
+    "lab_flo_scav2_tail_tfe_s1",
+    "lab_flo_scav3_conc_tfe_s1",
+    "lab_flo_final_conc_yield_s1",
+    "lab_flo_final_conc_recovery_s1",
+    "lab_flo_feed_tfe_s2",
+    "lab_flo_feed_f325_s2",
+    "lab_flo_conc_tfe_s2",
+    "lab_flo_tail_tfe_s2",
+    "lab_flo_rough_conc_tfe_s2",
+    "lab_flo_rough_tail_tfe_s2",
+    "lab_flo_clean_tail_tfe_s2",
+    "lab_flo_scav1_conc_tfe_s2",
+    "lab_flo_scav1_tail_tfe_s2",
+    "lab_flo_scav2_conc_tfe_s2",
+    "lab_flo_scav2_tail_tfe_s2",
+    "lab_flo_scav3_conc_tfe_s2",
+    "lab_flo_final_conc_yield_s2",
+    "lab_flo_final_conc_recovery_s2"
+  ],
   "train_ratio": 0.7,
   "val_ratio": 0.15,
   "test_ratio": 0.15,
@@ -23,59 +91,63 @@
   "lstm_batch_size": 64,
   "lstm_lr": 0.001,
   "lstm_patience": 8,
-  "random_seed": 42
+  "random_seed": 42,
+  "allow_synthetic_demo": false
 }
-2026-05-14 14:29:42,998 | WARNING | 数据文件不存在: data/modeling_dataset_xin2_final.parquet，使用合成演示数据
-2026-05-14 14:29:43,002 | INFO | 合成数据形状: (2000, 9)，列: ['timestamp', 'env_temperature', 'env_feed_rate', 'op_reagent_flow', 'op_air_flow', 'state_foam_thickness', 'state_pH_value', 'state_level_sensor', 'concentrate_grade']
-2026-05-14 14:29:43,019 | INFO | 预处理后数据形状: (2000, 9)
-2026-05-14 14:29:43,019 | INFO | ----------------------------------------
-2026-05-14 14:29:43,019 | INFO | 推断变量角色...
-2026-05-14 14:29:43,020 | INFO | C（工况/混杂）变量: 2 个
-2026-05-14 14:29:43,021 | INFO | 变量角色汇总: target=1, A=2, C=2, S=3, excluded=0
-2026-05-14 14:29:43,023 | INFO | 操作变量 A (2): ['op_reagent_flow', 'op_air_flow']
-2026-05-14 14:29:43,023 | INFO | 工况变量 C (2): ['env_temperature', 'env_feed_rate']
-2026-05-14 14:29:43,023 | INFO | 状态变量 S (3): ['state_foam_thickness', 'state_pH_value', 'state_level_sensor']
-2026-05-14 14:29:43,023 | INFO | 排除变量 (0): []
-2026-05-14 14:29:43,023 | INFO | 全部特征列 (8): ['timestamp', 'env_temperature', 'env_feed_rate', 'op_reagent_flow', 'op_air_flow', 'state_foam_thickness', 'state_pH_value', 'state_level_sensor']
-2026-05-14 14:29:43,023 | INFO | 窗口长度: 12
-2026-05-14 14:29:43,023 | INFO | 数据切分方式: train=0.7, val=0.15, test=0.15
-2026-05-14 14:29:43,026 | INFO | 数据切分: train=1400, val=300, test=300
-2026-05-14 14:29:43,026 | INFO | ============================================================
-2026-05-14 14:29:43,027 | INFO | Model 0: 基线软测量 (all features -> LSTM -> y)
-2026-05-14 14:29:50,774 | INFO | Model 0 Test: MAE=0.2557, RMSE=0.3246, R2=0.9289
-2026-05-14 14:29:50,774 | INFO | ============================================================
-2026-05-14 14:29:50,774 | INFO | Model 1: 因果输入软测量 (A + S -> LSTM -> y)
-2026-05-14 14:29:56,795 | INFO |   早停 @ epoch 49，best_val_loss=0.016054
-2026-05-14 14:29:56,800 | INFO | Model 1 Test: MAE=0.2598, RMSE=0.3282, R2=0.9274
-2026-05-14 14:29:56,800 | INFO | ============================================================
-2026-05-14 14:29:56,800 | INFO | Model 2: DML 残差软测量
-2026-05-14 14:29:56,803 | INFO | 训练 g_model: C -> y (残差化 y 的基线模型)
-2026-05-14 14:29:56,895 | INFO |   g_model R² (train): 0.9565
-2026-05-14 14:29:56,895 | INFO | 训练 q_model: C -> A_j / S_j（残差化操作变量和状态变量）
-2026-05-14 14:29:57,262 | INFO | 训练残差 LSTM: [A_res, S_res] 序列 -> y_res
-2026-05-14 14:30:00,887 | INFO |   早停 @ epoch 29，best_val_loss=0.456767
-2026-05-14 14:30:00,893 | INFO | Model 2 Test (原始 y): MAE=0.3580, RMSE=0.4569, R2=0.8592
-2026-05-14 14:30:00,893 | INFO | Model 2 Test (y_res):  MAE=0.3580, RMSE=0.4569, R2=0.6433
-2026-05-14 14:30:00,898 | INFO | 已保存: results/residual_soft_sensor/variable_roles.csv
-2026-05-14 14:30:00,900 | INFO | 已保存: results/residual_soft_sensor/y_baseline_predictions.csv
-2026-05-14 14:30:00,901 | INFO | 已保存: results/residual_soft_sensor/residual_feature_summary.csv
-2026-05-14 14:30:00,903 | INFO | 已保存: results/residual_soft_sensor/predictions_test.csv
-2026-05-14 14:30:00,904 | INFO | 已保存: results/residual_soft_sensor/metrics_compare.csv
-2026-05-14 14:30:00,906 | INFO | 
+2026-05-15 22:59:16,849 | INFO | 读取数据文件: C:\Users\goldenwhale\Downloads\my_mining_simulation\output\simulation_2months_seq_hybrid_normal_fast_sampling.parquet
+2026-05-15 22:59:17,255 | INFO | 数据形状: (86400, 266)
+2026-05-15 22:59:17,259 | INFO | 已按时间列 't' 排序
+2026-05-15 22:59:20,258 | INFO | 预处理后数据形状: (86400, 266)
+2026-05-15 22:59:20,269 | INFO | ----------------------------------------
+2026-05-15 22:59:20,270 | INFO | 推断变量角色...
+2026-05-15 22:59:21,266 | INFO | DAG 解析: ancestors_of_y=21, descendants_of_y=0, mediators=1, colliders=0
+2026-05-15 22:59:21,275 | INFO | C（工况/混杂）变量: 31 个
+2026-05-15 22:59:21,276 | INFO | 变量角色汇总: target=1, A=16, C=31, S=167, excluded=50
+2026-05-15 22:59:21,280 | INFO | 操作变量 A (16): ['fx_s1_cx1_level_valve_sp', 'fx_s1_cx1_air_sp', 'fx_s1_cx2_level_valve_sp', 'fx_s1_cx2_air_sp', 'fx_s1_cx3_level_valve_sp', 'fx_s1_cx3_air_sp', 'fx_s1_jx_air_sp', 'fx_s1_sx1_air_sp', 'fx_s1_sx2_air_sp', 'fx_s1_sx3_air_sp', 'fx_s1_td_rough_freq', 'fx_s1_naoh_freq', 'fx_s1_cao_freq', 'fx_s1_tk1_steam_sp', 'fx_s1_tk2_steam_sp', 'fx_s1_tk3_steam_sp']
+2026-05-15 22:59:21,280 | INFO | 工况变量 C (31): ['agg_mag_coil_temp', 'agg_mag_flush_water_pressure', 'agg_tm_cyclone_feed_flow', 'agg_tm_cyclone_sand_valve_feedback', 'agg_tm_cyclone_sand_water_flow', 'agg_tm_reducer_oil_temp', 'agg_tm_reducer_outlet_temp', 'fx_nt1_underflow_density', 'fx_nt2_underflow_density', 'fx_s1_cx1_froth_h', 'fx_s1_cx1_level', 'fx_s1_cx2_froth_h', 'fx_s1_cx2_level', 'fx_s1_cx3_froth_h', 'fx_s1_jx_froth_h', 'fx_s1_sx1_air_flow', 'fx_s1_sx3_air_flow', 'fx_s1_ph', 'fx_s2_tk1_temp', 'fx_s2_tk2_temp', 'fx_s2_tk3_temp', 'fx_s1_pool1_level', 'fx_s1_pool1_pump_freq', 'fx_s1_pool1_pump_curr', 'fx_s1_pool2_pump_freq', 'fx_s1_pool3_level', 'fx_s1_pool3_pump_freq', 'fx_s1_pool3_pump_curr', 'fx_blower1_pressure', 'fx_ah5_power', 'fx_s1_ft1701']
+2026-05-15 22:59:21,280 | INFO | 状态变量 S (167): ['agg_mag_excit_voltage', 'agg_mag_excit_current', 'agg_mag_tailings_valve1', 'agg_mag_tailings_valve2', 'agg_mag_blowdown_valve', 'agg_mag_pulsation_freq', 'agg_mag_ring_freq', 'agg_mag_level', 'agg_mag_motor_current_rc', 'agg_mag_motor_voltage_rc', 'agg_tm_cyclone_pool_level', 'agg_tm_cyclone_pool_valve_setpoint', 'MC1_FET503_AI', 'agg_tm_cyclone_pump_freq', 'agg_tm_cyclone_pump_current', 'agg_tm_cyclone_sand_valve_setpoint', 'agg_tm_motor_current', 'MC1_TM204_HDZC_1_WD_AI', 'MC1_TM206_HDZC_2_WD_AI', 'MC1_TM204_ZDJ_DZ_A_WD_AI', 'MC1_TM206_ZDJ_DZ_B_WD_AI', 'agg_tm_cyclone_overflow_pool_level', 'agg_tm_overflow_pump_current', 'fx_nt1_motor_current', 'fx_nt2_motor_current', 'fx_s1_cx1_level_valve_fb', 'fx_s1_cx1_air_flow', 'fx_s1_cx1_bv_pos', 'fx_s1_cx2_level_valve_fb', 'fx_s1_cx2_air_flow', 'fx_s1_cx2_bv_pos', 'fx_s1_cx3_level', 'fx_s1_cx3_level_valve_fb', 'fx_s1_cx3_air_flow', 'fx_s1_cx3_bv_pos', 'fx_s1_jx_level', 'fx_s1_jx_level_valve_sp', 'fx_s1_jx_level_valve_fb', 'fx_s1_jx_air_flow', 'fx_s1_jx_bv_pos', 'fx_s1_sx1_froth_h', 'fx_s1_sx1_level', 'fx_s1_sx1_level_valve_sp', 'fx_s1_sx1_level_valve_fb', 'fx_s1_sx1_bv_pos', 'fx_s1_sx2_froth_h', 'fx_s1_sx2_level', 'fx_s1_sx2_level_valve_sp', 'fx_s1_sx2_level_valve_fb', 'fx_s1_sx2_air_flow', 'fx_s1_sx2_bv_pos', 'fx_s1_sx3_froth_h', 'fx_s1_sx3_level', 'fx_s1_sx3_level_valve_sp', 'fx_s1_sx3_level_valve_fb', 'fx_s1_sx3_bv_pos', 'fx_s2_cx1_froth_h', 'fx_s2_cx1_level', 'fx_s2_cx1_level_valve_sp', 'fx_s2_cx1_level_valve_fb', 'fx_s2_cx1_air_flow', 'fx_s2_cx1_air_sp', 'fx_s2_cx1_bv_pos', 'fx_s2_cx2_froth_h', 'fx_s2_cx2_level', 'fx_s2_cx2_level_valve_sp', 'fx_s2_cx2_level_valve_fb', 'fx_s2_cx2_air_flow', 'fx_s2_cx2_air_sp', 'fx_s2_cx2_bv_pos', 'fx_s2_cx3_froth_h', 'fx_s2_cx3_level', 'fx_s2_cx3_level_valve_sp', 'fx_s2_cx3_level_valve_fb', 'fx_s2_cx3_air_flow', 'fx_s2_cx3_air_sp', 'fx_s2_cx3_bv_pos', 'fx_s2_jx_froth_h', 'fx_s2_jx_level', 'fx_s2_jx_level_valve_sp', 'fx_s2_jx_level_valve_fb', 'fx_s2_jx_air_flow', 'fx_s2_jx_air_sp', 'fx_s2_jx_bv_pos', 'fx_s2_sx1_froth_h', 'fx_s2_sx1_level', 'fx_s2_sx1_level_valve_sp', 'fx_s2_sx1_level_valve_fb', 'fx_s2_sx1_air_flow', 'fx_s2_sx1_air_sp', 'fx_s2_sx1_bv_pos', 'fx_s2_sx2_froth_h', 'fx_s2_sx2_level', 'fx_s2_sx2_level_valve_sp', 'fx_s2_sx2_level_valve_fb', 'fx_s2_sx2_air_flow', 'fx_s2_sx2_air_sp', 'fx_s2_sx2_bv_pos', 'fx_s2_sx3_froth_h', 'fx_s2_sx3_level', 'fx_s2_sx3_level_valve_sp', 'fx_s2_sx3_level_valve_fb', 'fx_s2_sx3_air_flow', 'fx_s2_sx3_air_sp', 'fx_s2_sx3_bv_pos', 'fx_s1_cx1_motor_curr', 'fx_s1_cx2_motor_curr', 'fx_s1_cx3_motor_curr', 'fx_s1_jx_motor_curr', 'fx_s1_sx1_motor_curr', 'fx_s1_sx2_motor_curr', 'fx_s1_sx3_motor_curr', 'fx_s2_cx1_motor_curr', 'fx_s2_cx2_motor_curr', 'fx_s2_cx3_motor_curr', 'fx_s2_jx_motor_curr', 'fx_s2_sx1_motor_curr', 'fx_s2_sx2_motor_curr', 'fx_s2_sx3_motor_curr', 'fx_s1_td_rough_curr', 'fx_s1_td_clean_freq', 'fx_s1_td_clean_curr', 'fx_s1_k6_rough_freq', 'fx_s1_k6_rough_curr', 'fx_s1_naoh_curr', 'fx_s1_cao_curr', 'fx_s2_td_rough_freq', 'fx_s2_td_rough_curr', 'fx_s2_td_clean_freq', 'fx_s2_td_clean_curr', 'fx_s2_k6_rough_freq', 'fx_s2_k6_rough_curr', 'fx_s2_naoh_freq', 'fx_s2_naoh_curr', 'fx_s2_cao_freq', 'fx_s2_cao_curr', 'fx_s2_ph', 'fx_s1_tk1_temp', 'fx_s1_tk1_steam_fb', 'fx_s1_tk2_temp', 'fx_s1_tk2_steam_fb', 'fx_s1_tk3_temp', 'fx_s1_tk3_steam_fb', 'fx_s2_tk1_steam_sp', 'fx_s2_tk1_steam_fb', 'fx_s2_tk2_steam_sp', 'fx_s2_tk2_steam_fb', 'fx_s2_tk3_steam_sp', 'fx_s2_tk3_steam_fb', 'fx_s1_pool2_level', 'fx_s1_pool2_pump_curr', 'fx_s2_pool1_level', 'fx_s2_pool1_pump_freq', 'fx_s2_pool1_pump_curr', 'fx_s2_pool2_level', 'fx_s2_pool2_pump_freq', 'fx_s2_pool2_pump_curr', 'fx_s2_pool3_level', 'fx_s2_pool3_pump_freq', 'fx_s2_pool3_pump_curr', 'fx_blower2_pressure', 'fx_ah6_power', 'fx_s1_ft1702', 'fx_s2_ft2701', 'fx_s2_ft2702', 'fx_s1_k6_level', 'fx_s2_k6_level']
+2026-05-15 22:59:21,280 | INFO | 排除变量 (50): ['lab_1_eryi_f200', 'lab_1_eryi_tfe', 'lab_2_eryi_f200', 'lab_2_eryi_tfe', 'lab_3_eryi_f200', 'lab_3_eryi_tfe', 'lab_mag_wm_conc_tfe', 'lab_mag_wm_tail_tfe', 'lab_mag_hm_conc_tfe', 'lab_mag_hm_tail_tfe', 'lab_mag_sw_conc_tfe', 'lab_mag_sw_tail_tfe', 'lab_mag_mixed_conc_tfe', 'lab_mag_tube_conc_tfe', 'lab_mag_tube_yield', 'lab_tm_feed_f325', 'lab_tm_discharge_f325', 'lab_tm_overflow_f325', 'lab_tm_overflow_tfe', 'lab_tm_overflow_conc', 'lab_tm_sand_f325', 'lab_flo_feed_tfe_s1', 'lab_flo_feed_f325_s1', 'lab_flo_conc_tfe_s1', 'lab_flo_tail_tfe_s1', 'lab_flo_rough_conc_tfe_s1', 'lab_flo_rough_tail_tfe_s1', 'lab_flo_clean_tail_tfe_s1', 'lab_flo_scav1_conc_tfe_s1', 'lab_flo_scav1_tail_tfe_s1', 'lab_flo_scav2_conc_tfe_s1', 'lab_flo_scav2_tail_tfe_s1', 'lab_flo_scav3_conc_tfe_s1', 'lab_flo_final_conc_yield_s1', 'lab_flo_final_conc_recovery_s1', 'lab_flo_feed_tfe_s2', 'lab_flo_feed_f325_s2', 'lab_flo_conc_tfe_s2', 'lab_flo_tail_tfe_s2', 'lab_flo_rough_conc_tfe_s2', 'lab_flo_rough_tail_tfe_s2', 'lab_flo_clean_tail_tfe_s2', 'lab_flo_scav1_conc_tfe_s2', 'lab_flo_scav1_tail_tfe_s2', 'lab_flo_scav2_conc_tfe_s2', 'lab_flo_scav2_tail_tfe_s2', 'lab_flo_scav3_conc_tfe_s2', 'lab_flo_final_conc_yield_s2', 'lab_flo_final_conc_recovery_s2', 'y_fx_xin2']
+2026-05-15 22:59:21,294 | INFO | 全部特征列（建模用数值列）(214): ['agg_mag_excit_voltage', 'agg_mag_excit_current', 'agg_mag_coil_temp', 'agg_mag_tailings_valve1', 'agg_mag_tailings_valve2', 'agg_mag_blowdown_valve', 'agg_mag_pulsation_freq', 'agg_mag_ring_freq', 'agg_mag_level', 'agg_mag_flush_water_pressure', 'agg_mag_motor_current_rc', 'agg_mag_motor_voltage_rc', 'agg_tm_cyclone_pool_level', 'agg_tm_cyclone_pool_valve_setpoint', 'MC1_FET503_AI', 'agg_tm_cyclone_feed_flow', 'agg_tm_cyclone_pump_freq', 'agg_tm_cyclone_pump_current', 'agg_tm_cyclone_sand_valve_setpoint', 'agg_tm_cyclone_sand_valve_feedback', 'agg_tm_cyclone_sand_water_flow', 'agg_tm_motor_current', 'MC1_TM204_HDZC_1_WD_AI', 'MC1_TM206_HDZC_2_WD_AI', 'MC1_TM204_ZDJ_DZ_A_WD_AI', 'MC1_TM206_ZDJ_DZ_B_WD_AI', 'agg_tm_reducer_oil_temp', 'agg_tm_reducer_outlet_temp', 'agg_tm_cyclone_overflow_pool_level', 'agg_tm_overflow_pump_current', 'fx_nt1_motor_current', 'fx_nt2_motor_current', 'fx_nt1_underflow_density', 'fx_nt2_underflow_density', 'fx_s1_cx1_froth_h', 'fx_s1_cx1_level', 'fx_s1_cx1_level_valve_sp', 'fx_s1_cx1_level_valve_fb', 'fx_s1_cx1_air_flow', 'fx_s1_cx1_air_sp', 'fx_s1_cx1_bv_pos', 'fx_s1_cx2_froth_h', 'fx_s1_cx2_level', 'fx_s1_cx2_level_valve_sp', 'fx_s1_cx2_level_valve_fb', 'fx_s1_cx2_air_flow', 'fx_s1_cx2_air_sp', 'fx_s1_cx2_bv_pos', 'fx_s1_cx3_froth_h', 'fx_s1_cx3_level', 'fx_s1_cx3_level_valve_sp', 'fx_s1_cx3_level_valve_fb', 'fx_s1_cx3_air_flow', 'fx_s1_cx3_air_sp', 'fx_s1_cx3_bv_pos', 'fx_s1_jx_froth_h', 'fx_s1_jx_level', 'fx_s1_jx_level_valve_sp', 'fx_s1_jx_level_valve_fb', 'fx_s1_jx_air_flow', 'fx_s1_jx_air_sp', 'fx_s1_jx_bv_pos', 'fx_s1_sx1_froth_h', 'fx_s1_sx1_level', 'fx_s1_sx1_level_valve_sp', 'fx_s1_sx1_level_valve_fb', 'fx_s1_sx1_air_flow', 'fx_s1_sx1_air_sp', 'fx_s1_sx1_bv_pos', 'fx_s1_sx2_froth_h', 'fx_s1_sx2_level', 'fx_s1_sx2_level_valve_sp', 'fx_s1_sx2_level_valve_fb', 'fx_s1_sx2_air_flow', 'fx_s1_sx2_air_sp', 'fx_s1_sx2_bv_pos', 'fx_s1_sx3_froth_h', 'fx_s1_sx3_level', 'fx_s1_sx3_level_valve_sp', 'fx_s1_sx3_level_valve_fb', 'fx_s1_sx3_air_flow', 'fx_s1_sx3_air_sp', 'fx_s1_sx3_bv_pos', 'fx_s2_cx1_froth_h', 'fx_s2_cx1_level', 'fx_s2_cx1_level_valve_sp', 'fx_s2_cx1_level_valve_fb', 'fx_s2_cx1_air_flow', 'fx_s2_cx1_air_sp', 'fx_s2_cx1_bv_pos', 'fx_s2_cx2_froth_h', 'fx_s2_cx2_level', 'fx_s2_cx2_level_valve_sp', 'fx_s2_cx2_level_valve_fb', 'fx_s2_cx2_air_flow', 'fx_s2_cx2_air_sp', 'fx_s2_cx2_bv_pos', 'fx_s2_cx3_froth_h', 'fx_s2_cx3_level', 'fx_s2_cx3_level_valve_sp', 'fx_s2_cx3_level_valve_fb', 'fx_s2_cx3_air_flow', 'fx_s2_cx3_air_sp', 'fx_s2_cx3_bv_pos', 'fx_s2_jx_froth_h', 'fx_s2_jx_level', 'fx_s2_jx_level_valve_sp', 'fx_s2_jx_level_valve_fb', 'fx_s2_jx_air_flow', 'fx_s2_jx_air_sp', 'fx_s2_jx_bv_pos', 'fx_s2_sx1_froth_h', 'fx_s2_sx1_level', 'fx_s2_sx1_level_valve_sp', 'fx_s2_sx1_level_valve_fb', 'fx_s2_sx1_air_flow', 'fx_s2_sx1_air_sp', 'fx_s2_sx1_bv_pos', 'fx_s2_sx2_froth_h', 'fx_s2_sx2_level', 'fx_s2_sx2_level_valve_sp', 'fx_s2_sx2_level_valve_fb', 'fx_s2_sx2_air_flow', 'fx_s2_sx2_air_sp', 'fx_s2_sx2_bv_pos', 'fx_s2_sx3_froth_h', 'fx_s2_sx3_level', 'fx_s2_sx3_level_valve_sp', 'fx_s2_sx3_level_valve_fb', 'fx_s2_sx3_air_flow', 'fx_s2_sx3_air_sp', 'fx_s2_sx3_bv_pos', 'fx_s1_cx1_motor_curr', 'fx_s1_cx2_motor_curr', 'fx_s1_cx3_motor_curr', 'fx_s1_jx_motor_curr', 'fx_s1_sx1_motor_curr', 'fx_s1_sx2_motor_curr', 'fx_s1_sx3_motor_curr', 'fx_s2_cx1_motor_curr', 'fx_s2_cx2_motor_curr', 'fx_s2_cx3_motor_curr', 'fx_s2_jx_motor_curr', 'fx_s2_sx1_motor_curr', 'fx_s2_sx2_motor_curr', 'fx_s2_sx3_motor_curr', 'fx_s1_td_rough_freq', 'fx_s1_td_rough_curr', 'fx_s1_td_clean_freq', 'fx_s1_td_clean_curr', 'fx_s1_k6_rough_freq', 'fx_s1_k6_rough_curr', 'fx_s1_naoh_freq', 'fx_s1_naoh_curr', 'fx_s1_cao_freq', 'fx_s1_cao_curr', 'fx_s2_td_rough_freq', 'fx_s2_td_rough_curr', 'fx_s2_td_clean_freq', 'fx_s2_td_clean_curr', 'fx_s2_k6_rough_freq', 'fx_s2_k6_rough_curr', 'fx_s2_naoh_freq', 'fx_s2_naoh_curr', 'fx_s2_cao_freq', 'fx_s2_cao_curr', 'fx_s1_ph', 'fx_s2_ph', 'fx_s1_tk1_temp', 'fx_s1_tk1_steam_sp', 'fx_s1_tk1_steam_fb', 'fx_s1_tk2_temp', 'fx_s1_tk2_steam_sp', 'fx_s1_tk2_steam_fb', 'fx_s1_tk3_temp', 'fx_s1_tk3_steam_sp', 'fx_s1_tk3_steam_fb', 'fx_s2_tk1_temp', 'fx_s2_tk1_steam_sp', 'fx_s2_tk1_steam_fb', 'fx_s2_tk2_temp', 'fx_s2_tk2_steam_sp', 'fx_s2_tk2_steam_fb', 'fx_s2_tk3_temp', 'fx_s2_tk3_steam_sp', 'fx_s2_tk3_steam_fb', 'fx_s1_pool1_level', 'fx_s1_pool1_pump_freq', 'fx_s1_pool1_pump_curr', 'fx_s1_pool2_level', 'fx_s1_pool2_pump_freq', 'fx_s1_pool2_pump_curr', 'fx_s1_pool3_level', 'fx_s1_pool3_pump_freq', 'fx_s1_pool3_pump_curr', 'fx_s2_pool1_level', 'fx_s2_pool1_pump_freq', 'fx_s2_pool1_pump_curr', 'fx_s2_pool2_level', 'fx_s2_pool2_pump_freq', 'fx_s2_pool2_pump_curr', 'fx_s2_pool3_level', 'fx_s2_pool3_pump_freq', 'fx_s2_pool3_pump_curr', 'fx_blower1_pressure', 'fx_blower2_pressure', 'fx_ah5_power', 'fx_ah6_power', 'fx_s1_ft1701', 'fx_s1_ft1702', 'fx_s2_ft2701', 'fx_s2_ft2702', 'fx_s1_k6_level', 'fx_s2_k6_level']
+2026-05-15 22:59:21,295 | INFO | 窗口长度: 12
+2026-05-15 22:59:21,295 | INFO | 数据切分方式: train=0.7, val=0.15, test=0.15
+2026-05-15 22:59:21,557 | INFO | 数据切分: train=60479, val=12960, test=12961
+2026-05-15 22:59:21,557 | INFO | ============================================================
+2026-05-15 22:59:21,557 | INFO | Model 0: 基线软测量 (all features -> LSTM -> y)
+2026-05-15 23:02:49,671 | INFO |   早停 @ epoch 18，best_val_loss=0.568579
+2026-05-15 23:02:49,966 | INFO | Model 0 Test: MAE=0.0200, RMSE=0.0252, R2=0.3877
+2026-05-15 23:02:50,020 | INFO | ============================================================
+2026-05-15 23:02:50,020 | INFO | Model 1: 因果输入软测量 (A + S -> LSTM -> y)
+2026-05-15 23:04:51,635 | INFO |   早停 @ epoch 10，best_val_loss=0.475748
+2026-05-15 23:04:51,797 | INFO | Model 1 Test: MAE=0.0183, RMSE=0.0239, R2=0.4519
+2026-05-15 23:04:51,855 | INFO | ============================================================
+2026-05-15 23:04:51,855 | INFO | Model 2: DML 残差软测量
+2026-05-15 23:04:51,930 | INFO | 训练 g_model: C -> y (残差化 y 的基线模型)
+2026-05-15 23:04:56,788 | INFO |   g_model R² (train): 0.6406
+2026-05-15 23:04:56,794 | INFO | 训练 q_model: C -> A_j / S_j（残差化操作变量和状态变量）
+2026-05-15 23:15:50,989 | INFO | 训练残差 LSTM: [A_res, S_res] 序列 -> y_res
+2026-05-15 23:18:29,358 | INFO |   早停 @ epoch 11，best_val_loss=1.153283
+2026-05-15 23:18:29,525 | INFO | Model 2 Test (原始 y): MAE=0.0199, RMSE=0.0256, R2=0.3684
+2026-05-15 23:18:29,526 | INFO | Model 2 Test (y_res):  MAE=0.0199, RMSE=0.0256, R2=0.2945
+2026-05-15 23:18:29,882 | INFO | 已保存: results\residual_soft_sensor\variable_roles.csv
+2026-05-15 23:18:29,956 | INFO | 已保存: results\residual_soft_sensor\y_baseline_predictions.csv
+2026-05-15 23:18:29,962 | INFO | 已保存: results\residual_soft_sensor\residual_feature_summary.csv
+2026-05-15 23:18:30,050 | INFO | 已保存: results\residual_soft_sensor\predictions_test.csv
+2026-05-15 23:18:30,055 | INFO | 已保存: results\residual_soft_sensor\metrics_compare.csv
+2026-05-15 23:18:30,075 | INFO | 
               model_name split      MAE     RMSE       R2
-                baseline  test 0.255734 0.324634 0.928944
-            causal_input  test 0.259849 0.328247 0.927354
-dml_residual_soft_sensor  test 0.357967 0.456918 0.859236
-2026-05-14 14:30:00,906 | INFO | ============================================================
-2026-05-14 14:30:00,906 | INFO | 运行完成。输出文件：
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/metrics_compare.csv
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/predictions_test.csv
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/residual_feature_summary.csv
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/run_log.txt
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/variable_roles.csv
-2026-05-14 14:30:00,907 | INFO |   results/residual_soft_sensor/y_baseline_predictions.csv
-2026-05-14 14:30:00,907 | INFO | ============================================================
-2026-05-14 14:30:00,907 | INFO | DML 残差软测量区别于普通 LSTM 软测量：
-2026-05-14 14:30:00,907 | INFO |   普通 LSTM: X_seq -> y
-2026-05-14 14:30:00,907 | INFO |   DML 残差:  C->y_base + [A_res,S_res]_seq->y_res, y_hat=y_base+y_res_hat
-2026-05-14 14:30:00,907 | INFO |   核心优势: 消除工况变量 C 对 A/S 信号的混杂，使 LSTM 专注于因果相关残差信号。
+                baseline  test 0.020003 0.025211 0.387716
+            causal_input  test 0.018278 0.023852 0.451925
+dml_residual_soft_sensor  test 0.019919 0.025605 0.368425
+2026-05-15 23:18:30,076 | INFO | ============================================================
+2026-05-15 23:18:30,076 | INFO | 运行完成。输出文件：
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\metrics_compare.csv
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\predictions_test.csv
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\residual_feature_summary.csv
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\run_log.txt
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\variable_roles.csv
+2026-05-15 23:18:30,078 | INFO |   results\residual_soft_sensor\y_baseline_predictions.csv
+2026-05-15 23:18:30,078 | INFO | ============================================================
+2026-05-15 23:18:30,078 | INFO | DML 残差软测量区别于普通 LSTM 软测量：
+2026-05-15 23:18:30,078 | INFO |   普通 LSTM: X_seq -> y
+2026-05-15 23:18:30,078 | INFO |   DML 残差:  C->y_base + [A_res,S_res]_seq->y_res, y_hat=y_base+y_res_hat
+2026-05-15 23:18:30,078 | INFO |   核心优势: 消除工况变量 C 对 A/S 信号的混杂，使 LSTM 专注于因果相关残差信号。

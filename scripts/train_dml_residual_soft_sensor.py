@@ -774,11 +774,22 @@ def run_model0_baseline(
     metrics = compute_metrics(y_true, y_pred)
     logger.info(f"Model 0 Test: MAE={metrics['MAE']:.4f}, RMSE={metrics['RMSE']:.4f}, R2={metrics['R2']:.4f}")
 
+    # 保存预测结果
+    predictions_test = pd.DataFrame({
+        "y_true": y_true,
+        "y_pred": y_pred,
+    })
+
     return {
         "model_name": "baseline",
         "metrics": metrics,
         "y_true": y_true,
         "y_pred": y_pred,
+        "lstm": model,  # 返回LSTM模型对象
+        "as_scaler": feat_scaler,  # 返回特征scaler
+        "y_scaler": y_scaler,  # 返回目标scaler
+        "feature_cols": all_feature_cols,  # 返回特征列名
+        "predictions_test": predictions_test,  # 返回预测结果
     }
 
 
@@ -806,6 +817,10 @@ def run_model1_causal_input(
             "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
             "y_true": np.array([]),
             "y_pred": np.array([]),
+            "lstm": None,
+            "as_scaler": None,
+            "y_scaler": None,
+            "feature_cols": [],
         }
 
     window_size = cfg["window_size"]
@@ -839,11 +854,22 @@ def run_model1_causal_input(
     metrics = compute_metrics(y_true, y_pred)
     logger.info(f"Model 1 Test: MAE={metrics['MAE']:.4f}, RMSE={metrics['RMSE']:.4f}, R2={metrics['R2']:.4f}")
 
+    # 保存预测结果
+    predictions_test = pd.DataFrame({
+        "y_true": y_true,
+        "y_pred": y_pred,
+    })
+
     return {
         "model_name": "causal_input",
         "metrics": metrics,
         "y_true": y_true,
         "y_pred": y_pred,
+        "lstm": model,  # 返回LSTM模型对象
+        "as_scaler": feat_scaler,  # 返回特征scaler
+        "y_scaler": y_scaler,  # 返回目标scaler
+        "feature_cols": causal_cols,  # 返回特征列名
+        "predictions_test": predictions_test,  # 返回预测结果
     }
 
 
@@ -1117,6 +1143,77 @@ def save_outputs(
     metrics_df.to_csv(mc_path, index=False, encoding="utf-8-sig")
     logger.info(f"已保存: {mc_path}")
     logger.info("\n" + metrics_df.to_string(index=False))
+    
+    # 6. 保存模型权重和scalers
+    import torch
+    import pickle
+    
+    # 保存Model 2 (DML残差模型) 的LSTM权重
+    if "residual_lstm" in model2 and model2["residual_lstm"] is not None:
+        lstm_model = model2["residual_lstm"]
+        if hasattr(lstm_model, '_model') and lstm_model._model is not None:
+            model_path = output_dir / "dml_residual_lstm_checkpoint.pt"
+            torch.save({
+                'model_state_dict': lstm_model._model.state_dict(),
+                'input_size': lstm_model.input_size,
+                'hidden_size': lstm_model.hidden_size,
+                'num_layers': lstm_model.num_layers,
+                'dropout': lstm_model.dropout,
+            }, model_path)
+            logger.info(f"已保存DML残差LSTM权重: {model_path}")
+    
+    # 保存scalers和其他模型组件
+    scalers_path = output_dir / "model_scalers.pkl"
+    scalers_dict = {}
+    
+    if "y_res_scaler" in model2:
+        scalers_dict["y_res_scaler"] = model2["y_res_scaler"]
+    if "as_scaler" in model2:
+        scalers_dict["as_scaler"] = model2["as_scaler"]
+    if "c_scaler" in model2:
+        scalers_dict["c_scaler"] = model2["c_scaler"]
+    if "g_model" in model2:
+        scalers_dict["g_model"] = model2["g_model"]
+    if "q_models" in model2:
+        scalers_dict["q_models"] = model2["q_models"]
+    
+    if scalers_dict:
+        with open(scalers_path, 'wb') as f:
+            pickle.dump(scalers_dict, f)
+        logger.info(f"已保存scalers和基模型: {scalers_path}")
+    
+    # 保存Model 0和Model 1的LSTM权重和scalers
+    for model_dict, model_name in [(model0, "baseline"), (model1, "causal_input")]:
+        if "lstm" in model_dict and model_dict["lstm"] is not None:
+            lstm_model = model_dict["lstm"]
+            if hasattr(lstm_model, '_model') and lstm_model._model is not None:
+                model_path = output_dir / f"{model_name}_lstm_checkpoint.pt"
+                torch.save({
+                    'model_state_dict': lstm_model._model.state_dict(),
+                    'input_size': lstm_model.input_size,
+                    'hidden_size': lstm_model.hidden_size,
+                    'num_layers': lstm_model.num_layers,
+                    'dropout': lstm_model.dropout,
+                }, model_path)
+                logger.info(f"已保存{model_name} LSTM权重: {model_path}")
+                
+                # 保存scalers和特征列
+                if "as_scaler" in model_dict or "y_scaler" in model_dict:
+                    scaler_path = output_dir / f"{model_name}_scalers.pkl"
+                    scaler_dict = {
+                        "as_scaler": model_dict.get("as_scaler"),
+                        "y_scaler": model_dict.get("y_scaler"),
+                        "feature_cols": model_dict.get("feature_cols", []),
+                    }
+                    with open(scaler_path, 'wb') as f:
+                        pickle.dump(scaler_dict, f)
+                    logger.info(f"已保存{model_name} scalers: {scaler_path}")
+                
+                # 保存预测结果
+                if "predictions_test" in model_dict:
+                    pred_path = output_dir / f"{model_name}_predictions_test.csv"
+                    model_dict["predictions_test"].to_csv(pred_path, index=False, encoding="utf-8-sig")
+                    logger.info(f"已保存{model_name} 预测结果: {pred_path}")
 
 
 # ─── 主流程 ───────────────────────────────────────────────────────────────────

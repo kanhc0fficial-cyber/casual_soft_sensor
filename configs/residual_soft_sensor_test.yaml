@@ -1,0 +1,88 @@
+# 测试配置：DML残差软测量快速验证
+
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
+dag_path: "data/features/global_edges.csv"
+output_dir: "results/residual_soft_sensor_test"
+
+target_col: "y_fx_xin1"
+time_col: "t"
+
+# 操作变量（简化版，只保留关键的）
+operation_vars:
+  - "fx_s1_td_rough_freq"
+  - "fx_s1_cx1_air_sp"
+  - "fx_s1_cx2_air_sp"
+  - "fx_s1_cx3_air_sp"
+
+exclude_cols:
+  - "y_fx_xin2"
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
+
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+
+window_size: 12
+
+residualization_model: "lightgbm"
+residual_sequence_model: "lstm"
+
+# 快速测试参数
+lstm_hidden_size: 32      # 减小
+lstm_num_layers: 1        # 减少层数
+lstm_dropout: 0.1
+lstm_epochs: 10           # 减少epochs
+lstm_batch_size: 128      # 增大batch
+lstm_lr: 0.001
+lstm_patience: 5
+
+random_seed: 42
+allow_synthetic_demo: false

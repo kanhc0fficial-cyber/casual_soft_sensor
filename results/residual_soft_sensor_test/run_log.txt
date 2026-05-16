@@ -1,0 +1,103 @@
+2026-05-16 06:26:16,279 | INFO | ============================================================
+2026-05-16 06:26:16,279 | INFO | DML 正交残差软测量  train_dml_residual_soft_sensor.py
+2026-05-16 06:26:16,279 | INFO | ============================================================
+2026-05-16 06:26:16,279 | INFO | 配置文件: configs/residual_soft_sensor_test_best.yaml
+2026-05-16 06:26:16,280 | INFO | 配置内容: {
+  "allow_synthetic_demo": false,
+  "dag_path": "data/features/global_edges.csv",
+  "data_path": "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet",
+  "exclude_cols": [
+    "y_fx_xin2",
+    "lab_1_eryi_f200",
+    "lab_1_eryi_tfe",
+    "lab_2_eryi_f200",
+    "lab_2_eryi_tfe",
+    "lab_3_eryi_f200",
+    "lab_3_eryi_tfe",
+    "lab_mag_wm_conc_tfe",
+    "lab_mag_wm_tail_tfe",
+    "lab_mag_hm_conc_tfe",
+    "lab_mag_hm_tail_tfe",
+    "lab_mag_sw_conc_tfe",
+    "lab_mag_sw_tail_tfe",
+    "lab_mag_mixed_conc_tfe",
+    "lab_mag_tube_conc_tfe",
+    "lab_mag_tube_yield",
+    "lab_tm_feed_f325",
+    "lab_tm_discharge_f325",
+    "lab_tm_overflow_f325",
+    "lab_tm_overflow_tfe",
+    "lab_tm_overflow_conc",
+    "lab_tm_sand_f325",
+    "lab_flo_feed_tfe_s1",
+    "lab_flo_feed_f325_s1",
+    "lab_flo_conc_tfe_s1",
+    "lab_flo_tail_tfe_s1",
+    "lab_flo_rough_conc_tfe_s1",
+    "lab_flo_rough_tail_tfe_s1",
+    "lab_flo_clean_tail_tfe_s1",
+    "lab_flo_scav1_conc_tfe_s1",
+    "lab_flo_scav1_tail_tfe_s1",
+    "lab_flo_scav2_conc_tfe_s1",
+    "lab_flo_scav2_tail_tfe_s1",
+    "lab_flo_scav3_conc_tfe_s1",
+    "lab_flo_final_conc_yield_s1",
+    "lab_flo_final_conc_recovery_s1",
+    "lab_flo_feed_tfe_s2",
+    "lab_flo_feed_f325_s2",
+    "lab_flo_conc_tfe_s2",
+    "lab_flo_tail_tfe_s2",
+    "lab_flo_rough_conc_tfe_s2",
+    "lab_flo_rough_tail_tfe_s2",
+    "lab_flo_clean_tail_tfe_s2",
+    "lab_flo_scav1_conc_tfe_s2",
+    "lab_flo_scav1_tail_tfe_s2",
+    "lab_flo_scav2_conc_tfe_s2",
+    "lab_flo_scav2_tail_tfe_s2",
+    "lab_flo_scav3_conc_tfe_s2",
+    "lab_flo_final_conc_yield_s2",
+    "lab_flo_final_conc_recovery_s2"
+  ],
+  "lstm_batch_size": 64,
+  "lstm_dropout": 0.2406590942262119,
+  "lstm_epochs": 10,
+  "lstm_hidden_size": 128,
+  "lstm_lr": 0.00014096175149815865,
+  "lstm_num_layers": 1,
+  "lstm_patience": 5,
+  "operation_vars": [
+    "fx_s1_td_rough_freq",
+    "fx_s1_cx1_air_sp",
+    "fx_s1_cx2_air_sp",
+    "fx_s1_cx3_air_sp"
+  ],
+  "output_dir": "results/residual_soft_sensor_test",
+  "random_seed": 42,
+  "residual_sequence_model": "lstm",
+  "residualization_model": "lightgbm",
+  "target_col": "y_fx_xin1",
+  "test_ratio": 0.15,
+  "time_col": "t",
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "window_size": 12
+}
+2026-05-16 06:26:21,255 | INFO | 读取数据文件: C:\Users\goldenwhale\Downloads\my_mining_simulation\output\simulation_2months_seq_hybrid_normal_fast_sampling.parquet
+2026-05-16 06:26:21,843 | INFO | 数据形状: (86400, 266)
+2026-05-16 06:26:21,884 | INFO | 已按时间列 't' 排序
+2026-05-16 06:26:27,794 | INFO | 预处理后数据形状: (86400, 266)
+2026-05-16 06:26:27,816 | INFO | ----------------------------------------
+2026-05-16 06:26:27,816 | INFO | 推断变量角色...
+2026-05-16 06:26:29,060 | INFO | DAG 解析: ancestors_of_y=21, descendants_of_y=0, mediators=1, colliders=0
+2026-05-16 06:26:29,073 | INFO | C（工况/混杂）变量: 31 个
+2026-05-16 06:26:29,076 | INFO | 变量角色汇总: target=1, A=4, C=31, S=179, excluded=50
+2026-05-16 06:26:29,082 | INFO | 操作变量 A (4): ['fx_s1_cx1_air_sp', 'fx_s1_cx2_air_sp', 'fx_s1_cx3_air_sp', 'fx_s1_td_rough_freq']
+2026-05-16 06:26:29,083 | INFO | 工况变量 C (31): ['agg_mag_coil_temp', 'agg_mag_flush_water_pressure', 'agg_tm_cyclone_feed_flow', 'agg_tm_cyclone_sand_valve_feedback', 'agg_tm_cyclone_sand_water_flow', 'agg_tm_reducer_oil_temp', 'agg_tm_reducer_outlet_temp', 'fx_nt1_underflow_density', 'fx_nt2_underflow_density', 'fx_s1_cx1_froth_h', 'fx_s1_cx1_level', 'fx_s1_cx2_froth_h', 'fx_s1_cx2_level', 'fx_s1_cx3_froth_h', 'fx_s1_jx_froth_h', 'fx_s1_sx1_air_flow', 'fx_s1_sx3_air_flow', 'fx_s1_ph', 'fx_s2_tk1_temp', 'fx_s2_tk2_temp', 'fx_s2_tk3_temp', 'fx_s1_pool1_level', 'fx_s1_pool1_pump_freq', 'fx_s1_pool1_pump_curr', 'fx_s1_pool2_pump_freq', 'fx_s1_pool3_level', 'fx_s1_pool3_pump_freq', 'fx_s1_pool3_pump_curr', 'fx_blower1_pressure', 'fx_ah5_power', 'fx_s1_ft1701']
+2026-05-16 06:26:29,084 | INFO | 状态变量 S (179): ['agg_mag_excit_voltage', 'agg_mag_excit_current', 'agg_mag_tailings_valve1', 'agg_mag_tailings_valve2', 'agg_mag_blowdown_valve', 'agg_mag_pulsation_freq', 'agg_mag_ring_freq', 'agg_mag_level', 'agg_mag_motor_current_rc', 'agg_mag_motor_voltage_rc', 'agg_tm_cyclone_pool_level', 'agg_tm_cyclone_pool_valve_setpoint', 'MC1_FET503_AI', 'agg_tm_cyclone_pump_freq', 'agg_tm_cyclone_pump_current', 'agg_tm_cyclone_sand_valve_setpoint', 'agg_tm_motor_current', 'MC1_TM204_HDZC_1_WD_AI', 'MC1_TM206_HDZC_2_WD_AI', 'MC1_TM204_ZDJ_DZ_A_WD_AI', 'MC1_TM206_ZDJ_DZ_B_WD_AI', 'agg_tm_cyclone_overflow_pool_level', 'agg_tm_overflow_pump_current', 'fx_nt1_motor_current', 'fx_nt2_motor_current', 'fx_s1_cx1_level_valve_sp', 'fx_s1_cx1_level_valve_fb', 'fx_s1_cx1_air_flow', 'fx_s1_cx1_bv_pos', 'fx_s1_cx2_level_valve_sp', 'fx_s1_cx2_level_valve_fb', 'fx_s1_cx2_air_flow', 'fx_s1_cx2_bv_pos', 'fx_s1_cx3_level', 'fx_s1_cx3_level_valve_sp', 'fx_s1_cx3_level_valve_fb', 'fx_s1_cx3_air_flow', 'fx_s1_cx3_bv_pos', 'fx_s1_jx_level', 'fx_s1_jx_level_valve_sp', 'fx_s1_jx_level_valve_fb', 'fx_s1_jx_air_flow', 'fx_s1_jx_air_sp', 'fx_s1_jx_bv_pos', 'fx_s1_sx1_froth_h', 'fx_s1_sx1_level', 'fx_s1_sx1_level_valve_sp', 'fx_s1_sx1_level_valve_fb', 'fx_s1_sx1_air_sp', 'fx_s1_sx1_bv_pos', 'fx_s1_sx2_froth_h', 'fx_s1_sx2_level', 'fx_s1_sx2_level_valve_sp', 'fx_s1_sx2_level_valve_fb', 'fx_s1_sx2_air_flow', 'fx_s1_sx2_air_sp', 'fx_s1_sx2_bv_pos', 'fx_s1_sx3_froth_h', 'fx_s1_sx3_level', 'fx_s1_sx3_level_valve_sp', 'fx_s1_sx3_level_valve_fb', 'fx_s1_sx3_air_sp', 'fx_s1_sx3_bv_pos', 'fx_s2_cx1_froth_h', 'fx_s2_cx1_level', 'fx_s2_cx1_level_valve_sp', 'fx_s2_cx1_level_valve_fb', 'fx_s2_cx1_air_flow', 'fx_s2_cx1_air_sp', 'fx_s2_cx1_bv_pos', 'fx_s2_cx2_froth_h', 'fx_s2_cx2_level', 'fx_s2_cx2_level_valve_sp', 'fx_s2_cx2_level_valve_fb', 'fx_s2_cx2_air_flow', 'fx_s2_cx2_air_sp', 'fx_s2_cx2_bv_pos', 'fx_s2_cx3_froth_h', 'fx_s2_cx3_level', 'fx_s2_cx3_level_valve_sp', 'fx_s2_cx3_level_valve_fb', 'fx_s2_cx3_air_flow', 'fx_s2_cx3_air_sp', 'fx_s2_cx3_bv_pos', 'fx_s2_jx_froth_h', 'fx_s2_jx_level', 'fx_s2_jx_level_valve_sp', 'fx_s2_jx_level_valve_fb', 'fx_s2_jx_air_flow', 'fx_s2_jx_air_sp', 'fx_s2_jx_bv_pos', 'fx_s2_sx1_froth_h', 'fx_s2_sx1_level', 'fx_s2_sx1_level_valve_sp', 'fx_s2_sx1_level_valve_fb', 'fx_s2_sx1_air_flow', 'fx_s2_sx1_air_sp', 'fx_s2_sx1_bv_pos', 'fx_s2_sx2_froth_h', 'fx_s2_sx2_level', 'fx_s2_sx2_level_valve_sp', 'fx_s2_sx2_level_valve_fb', 'fx_s2_sx2_air_flow', 'fx_s2_sx2_air_sp', 'fx_s2_sx2_bv_pos', 'fx_s2_sx3_froth_h', 'fx_s2_sx3_level', 'fx_s2_sx3_level_valve_sp', 'fx_s2_sx3_level_valve_fb', 'fx_s2_sx3_air_flow', 'fx_s2_sx3_air_sp', 'fx_s2_sx3_bv_pos', 'fx_s1_cx1_motor_curr', 'fx_s1_cx2_motor_curr', 'fx_s1_cx3_motor_curr', 'fx_s1_jx_motor_curr', 'fx_s1_sx1_motor_curr', 'fx_s1_sx2_motor_curr', 'fx_s1_sx3_motor_curr', 'fx_s2_cx1_motor_curr', 'fx_s2_cx2_motor_curr', 'fx_s2_cx3_motor_curr', 'fx_s2_jx_motor_curr', 'fx_s2_sx1_motor_curr', 'fx_s2_sx2_motor_curr', 'fx_s2_sx3_motor_curr', 'fx_s1_td_rough_curr', 'fx_s1_td_clean_freq', 'fx_s1_td_clean_curr', 'fx_s1_k6_rough_freq', 'fx_s1_k6_rough_curr', 'fx_s1_naoh_freq', 'fx_s1_naoh_curr', 'fx_s1_cao_freq', 'fx_s1_cao_curr', 'fx_s2_td_rough_freq', 'fx_s2_td_rough_curr', 'fx_s2_td_clean_freq', 'fx_s2_td_clean_curr', 'fx_s2_k6_rough_freq', 'fx_s2_k6_rough_curr', 'fx_s2_naoh_freq', 'fx_s2_naoh_curr', 'fx_s2_cao_freq', 'fx_s2_cao_curr', 'fx_s2_ph', 'fx_s1_tk1_temp', 'fx_s1_tk1_steam_sp', 'fx_s1_tk1_steam_fb', 'fx_s1_tk2_temp', 'fx_s1_tk2_steam_sp', 'fx_s1_tk2_steam_fb', 'fx_s1_tk3_temp', 'fx_s1_tk3_steam_sp', 'fx_s1_tk3_steam_fb', 'fx_s2_tk1_steam_sp', 'fx_s2_tk1_steam_fb', 'fx_s2_tk2_steam_sp', 'fx_s2_tk2_steam_fb', 'fx_s2_tk3_steam_sp', 'fx_s2_tk3_steam_fb', 'fx_s1_pool2_level', 'fx_s1_pool2_pump_curr', 'fx_s2_pool1_level', 'fx_s2_pool1_pump_freq', 'fx_s2_pool1_pump_curr', 'fx_s2_pool2_level', 'fx_s2_pool2_pump_freq', 'fx_s2_pool2_pump_curr', 'fx_s2_pool3_level', 'fx_s2_pool3_pump_freq', 'fx_s2_pool3_pump_curr', 'fx_blower2_pressure', 'fx_ah6_power', 'fx_s1_ft1702', 'fx_s2_ft2701', 'fx_s2_ft2702', 'fx_s1_k6_level', 'fx_s2_k6_level']
+2026-05-16 06:26:29,086 | INFO | 排除变量 (50): ['lab_1_eryi_f200', 'lab_1_eryi_tfe', 'lab_2_eryi_f200', 'lab_2_eryi_tfe', 'lab_3_eryi_f200', 'lab_3_eryi_tfe', 'lab_mag_wm_conc_tfe', 'lab_mag_wm_tail_tfe', 'lab_mag_hm_conc_tfe', 'lab_mag_hm_tail_tfe', 'lab_mag_sw_conc_tfe', 'lab_mag_sw_tail_tfe', 'lab_mag_mixed_conc_tfe', 'lab_mag_tube_conc_tfe', 'lab_mag_tube_yield', 'lab_tm_feed_f325', 'lab_tm_discharge_f325', 'lab_tm_overflow_f325', 'lab_tm_overflow_tfe', 'lab_tm_overflow_conc', 'lab_tm_sand_f325', 'lab_flo_feed_tfe_s1', 'lab_flo_feed_f325_s1', 'lab_flo_conc_tfe_s1', 'lab_flo_tail_tfe_s1', 'lab_flo_rough_conc_tfe_s1', 'lab_flo_rough_tail_tfe_s1', 'lab_flo_clean_tail_tfe_s1', 'lab_flo_scav1_conc_tfe_s1', 'lab_flo_scav1_tail_tfe_s1', 'lab_flo_scav2_conc_tfe_s1', 'lab_flo_scav2_tail_tfe_s1', 'lab_flo_scav3_conc_tfe_s1', 'lab_flo_final_conc_yield_s1', 'lab_flo_final_conc_recovery_s1', 'lab_flo_feed_tfe_s2', 'lab_flo_feed_f325_s2', 'lab_flo_conc_tfe_s2', 'lab_flo_tail_tfe_s2', 'lab_flo_rough_conc_tfe_s2', 'lab_flo_rough_tail_tfe_s2', 'lab_flo_clean_tail_tfe_s2', 'lab_flo_scav1_conc_tfe_s2', 'lab_flo_scav1_tail_tfe_s2', 'lab_flo_scav2_conc_tfe_s2', 'lab_flo_scav2_tail_tfe_s2', 'lab_flo_scav3_conc_tfe_s2', 'lab_flo_final_conc_yield_s2', 'lab_flo_final_conc_recovery_s2', 'y_fx_xin2']
+2026-05-16 06:26:29,103 | INFO | 全部特征列（建模用数值列）(214): ['agg_mag_excit_voltage', 'agg_mag_excit_current', 'agg_mag_coil_temp', 'agg_mag_tailings_valve1', 'agg_mag_tailings_valve2', 'agg_mag_blowdown_valve', 'agg_mag_pulsation_freq', 'agg_mag_ring_freq', 'agg_mag_level', 'agg_mag_flush_water_pressure', 'agg_mag_motor_current_rc', 'agg_mag_motor_voltage_rc', 'agg_tm_cyclone_pool_level', 'agg_tm_cyclone_pool_valve_setpoint', 'MC1_FET503_AI', 'agg_tm_cyclone_feed_flow', 'agg_tm_cyclone_pump_freq', 'agg_tm_cyclone_pump_current', 'agg_tm_cyclone_sand_valve_setpoint', 'agg_tm_cyclone_sand_valve_feedback', 'agg_tm_cyclone_sand_water_flow', 'agg_tm_motor_current', 'MC1_TM204_HDZC_1_WD_AI', 'MC1_TM206_HDZC_2_WD_AI', 'MC1_TM204_ZDJ_DZ_A_WD_AI', 'MC1_TM206_ZDJ_DZ_B_WD_AI', 'agg_tm_reducer_oil_temp', 'agg_tm_reducer_outlet_temp', 'agg_tm_cyclone_overflow_pool_level', 'agg_tm_overflow_pump_current', 'fx_nt1_motor_current', 'fx_nt2_motor_current', 'fx_nt1_underflow_density', 'fx_nt2_underflow_density', 'fx_s1_cx1_froth_h', 'fx_s1_cx1_level', 'fx_s1_cx1_level_valve_sp', 'fx_s1_cx1_level_valve_fb', 'fx_s1_cx1_air_flow', 'fx_s1_cx1_air_sp', 'fx_s1_cx1_bv_pos', 'fx_s1_cx2_froth_h', 'fx_s1_cx2_level', 'fx_s1_cx2_level_valve_sp', 'fx_s1_cx2_level_valve_fb', 'fx_s1_cx2_air_flow', 'fx_s1_cx2_air_sp', 'fx_s1_cx2_bv_pos', 'fx_s1_cx3_froth_h', 'fx_s1_cx3_level', 'fx_s1_cx3_level_valve_sp', 'fx_s1_cx3_level_valve_fb', 'fx_s1_cx3_air_flow', 'fx_s1_cx3_air_sp', 'fx_s1_cx3_bv_pos', 'fx_s1_jx_froth_h', 'fx_s1_jx_level', 'fx_s1_jx_level_valve_sp', 'fx_s1_jx_level_valve_fb', 'fx_s1_jx_air_flow', 'fx_s1_jx_air_sp', 'fx_s1_jx_bv_pos', 'fx_s1_sx1_froth_h', 'fx_s1_sx1_level', 'fx_s1_sx1_level_valve_sp', 'fx_s1_sx1_level_valve_fb', 'fx_s1_sx1_air_flow', 'fx_s1_sx1_air_sp', 'fx_s1_sx1_bv_pos', 'fx_s1_sx2_froth_h', 'fx_s1_sx2_level', 'fx_s1_sx2_level_valve_sp', 'fx_s1_sx2_level_valve_fb', 'fx_s1_sx2_air_flow', 'fx_s1_sx2_air_sp', 'fx_s1_sx2_bv_pos', 'fx_s1_sx3_froth_h', 'fx_s1_sx3_level', 'fx_s1_sx3_level_valve_sp', 'fx_s1_sx3_level_valve_fb', 'fx_s1_sx3_air_flow', 'fx_s1_sx3_air_sp', 'fx_s1_sx3_bv_pos', 'fx_s2_cx1_froth_h', 'fx_s2_cx1_level', 'fx_s2_cx1_level_valve_sp', 'fx_s2_cx1_level_valve_fb', 'fx_s2_cx1_air_flow', 'fx_s2_cx1_air_sp', 'fx_s2_cx1_bv_pos', 'fx_s2_cx2_froth_h', 'fx_s2_cx2_level', 'fx_s2_cx2_level_valve_sp', 'fx_s2_cx2_level_valve_fb', 'fx_s2_cx2_air_flow', 'fx_s2_cx2_air_sp', 'fx_s2_cx2_bv_pos', 'fx_s2_cx3_froth_h', 'fx_s2_cx3_level', 'fx_s2_cx3_level_valve_sp', 'fx_s2_cx3_level_valve_fb', 'fx_s2_cx3_air_flow', 'fx_s2_cx3_air_sp', 'fx_s2_cx3_bv_pos', 'fx_s2_jx_froth_h', 'fx_s2_jx_level', 'fx_s2_jx_level_valve_sp', 'fx_s2_jx_level_valve_fb', 'fx_s2_jx_air_flow', 'fx_s2_jx_air_sp', 'fx_s2_jx_bv_pos', 'fx_s2_sx1_froth_h', 'fx_s2_sx1_level', 'fx_s2_sx1_level_valve_sp', 'fx_s2_sx1_level_valve_fb', 'fx_s2_sx1_air_flow', 'fx_s2_sx1_air_sp', 'fx_s2_sx1_bv_pos', 'fx_s2_sx2_froth_h', 'fx_s2_sx2_level', 'fx_s2_sx2_level_valve_sp', 'fx_s2_sx2_level_valve_fb', 'fx_s2_sx2_air_flow', 'fx_s2_sx2_air_sp', 'fx_s2_sx2_bv_pos', 'fx_s2_sx3_froth_h', 'fx_s2_sx3_level', 'fx_s2_sx3_level_valve_sp', 'fx_s2_sx3_level_valve_fb', 'fx_s2_sx3_air_flow', 'fx_s2_sx3_air_sp', 'fx_s2_sx3_bv_pos', 'fx_s1_cx1_motor_curr', 'fx_s1_cx2_motor_curr', 'fx_s1_cx3_motor_curr', 'fx_s1_jx_motor_curr', 'fx_s1_sx1_motor_curr', 'fx_s1_sx2_motor_curr', 'fx_s1_sx3_motor_curr', 'fx_s2_cx1_motor_curr', 'fx_s2_cx2_motor_curr', 'fx_s2_cx3_motor_curr', 'fx_s2_jx_motor_curr', 'fx_s2_sx1_motor_curr', 'fx_s2_sx2_motor_curr', 'fx_s2_sx3_motor_curr', 'fx_s1_td_rough_freq', 'fx_s1_td_rough_curr', 'fx_s1_td_clean_freq', 'fx_s1_td_clean_curr', 'fx_s1_k6_rough_freq', 'fx_s1_k6_rough_curr', 'fx_s1_naoh_freq', 'fx_s1_naoh_curr', 'fx_s1_cao_freq', 'fx_s1_cao_curr', 'fx_s2_td_rough_freq', 'fx_s2_td_rough_curr', 'fx_s2_td_clean_freq', 'fx_s2_td_clean_curr', 'fx_s2_k6_rough_freq', 'fx_s2_k6_rough_curr', 'fx_s2_naoh_freq', 'fx_s2_naoh_curr', 'fx_s2_cao_freq', 'fx_s2_cao_curr', 'fx_s1_ph', 'fx_s2_ph', 'fx_s1_tk1_temp', 'fx_s1_tk1_steam_sp', 'fx_s1_tk1_steam_fb', 'fx_s1_tk2_temp', 'fx_s1_tk2_steam_sp', 'fx_s1_tk2_steam_fb', 'fx_s1_tk3_temp', 'fx_s1_tk3_steam_sp', 'fx_s1_tk3_steam_fb', 'fx_s2_tk1_temp', 'fx_s2_tk1_steam_sp', 'fx_s2_tk1_steam_fb', 'fx_s2_tk2_temp', 'fx_s2_tk2_steam_sp', 'fx_s2_tk2_steam_fb', 'fx_s2_tk3_temp', 'fx_s2_tk3_steam_sp', 'fx_s2_tk3_steam_fb', 'fx_s1_pool1_level', 'fx_s1_pool1_pump_freq', 'fx_s1_pool1_pump_curr', 'fx_s1_pool2_level', 'fx_s1_pool2_pump_freq', 'fx_s1_pool2_pump_curr', 'fx_s1_pool3_level', 'fx_s1_pool3_pump_freq', 'fx_s1_pool3_pump_curr', 'fx_s2_pool1_level', 'fx_s2_pool1_pump_freq', 'fx_s2_pool1_pump_curr', 'fx_s2_pool2_level', 'fx_s2_pool2_pump_freq', 'fx_s2_pool2_pump_curr', 'fx_s2_pool3_level', 'fx_s2_pool3_pump_freq', 'fx_s2_pool3_pump_curr', 'fx_blower1_pressure', 'fx_blower2_pressure', 'fx_ah5_power', 'fx_ah6_power', 'fx_s1_ft1701', 'fx_s1_ft1702', 'fx_s2_ft2701', 'fx_s2_ft2702', 'fx_s1_k6_level', 'fx_s2_k6_level']
+2026-05-16 06:26:29,105 | INFO | 窗口长度: 12
+2026-05-16 06:26:29,106 | INFO | 数据切分方式: train=0.7, val=0.15, test=0.15
+2026-05-16 06:26:29,451 | INFO | 数据切分: train=60479, val=12960, test=12961
+2026-05-16 06:26:29,451 | INFO | ============================================================
+2026-05-16 06:26:29,451 | INFO | Model 0: 基线软测量 (all features -> LSTM -> y)

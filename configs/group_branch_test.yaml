@@ -1,0 +1,103 @@
+# 测试配置：快速验证数据配置是否正确
+# 使用较少的epochs和较小的数据集
+
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
+output_dir: "results/group_branch_test"
+
+target_col: "y_fx_xin1"
+time_col: "t"
+
+exclude_cols:
+  - "y_fx_xin2"
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
+
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+
+window_size: 12
+
+# 快速测试参数
+epochs:     5        # 减少到5个epoch用于快速测试
+batch_size: 128      # 增大batch size加快训练
+lr:         0.001
+patience:   3
+loss:       "mse"
+
+random_seed: 42
+allow_synthetic_demo: false
+allow_feature_overlap: false
+warn_unused_features:  true
+
+# 简化的分组配置（只用3组测试）
+groups:
+  preprocessing:
+    indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+    branch_type: "gru"
+    hidden_dim: 32
+  
+  reagent:
+    indices: [146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 166, 212]
+    branch_type: "gru"
+    hidden_dim: 24
+  
+  flotation:
+    indices: [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82]
+    branch_type: "gru"
+    hidden_dim: 32
+
+model:
+  name: "causal_group_branch"
+  use_gate:       true
+  trainable_gate: true
+  gate_init:      0.5
+  output_bias:    true
+  loss:           "mse"

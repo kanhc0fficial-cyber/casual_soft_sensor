@@ -1,0 +1,217 @@
+特征列数量: 214
+================================================================================
+
+[  0] agg_mag_excit_voltage
+[  1] agg_mag_excit_current
+[  2] agg_mag_coil_temp
+[  3] agg_mag_tailings_valve1
+[  4] agg_mag_tailings_valve2
+[  5] agg_mag_blowdown_valve
+[  6] agg_mag_pulsation_freq
+[  7] agg_mag_ring_freq
+[  8] agg_mag_level
+[  9] agg_mag_flush_water_pressure
+[ 10] agg_mag_motor_current_rc
+[ 11] agg_mag_motor_voltage_rc
+[ 12] agg_tm_cyclone_pool_level
+[ 13] agg_tm_cyclone_pool_valve_setpoint
+[ 14] MC1_FET503_AI
+[ 15] agg_tm_cyclone_feed_flow
+[ 16] agg_tm_cyclone_pump_freq
+[ 17] agg_tm_cyclone_pump_current
+[ 18] agg_tm_cyclone_sand_valve_setpoint
+[ 19] agg_tm_cyclone_sand_valve_feedback
+[ 20] agg_tm_cyclone_sand_water_flow
+[ 21] agg_tm_motor_current
+[ 22] MC1_TM204_HDZC_1_WD_AI
+[ 23] MC1_TM206_HDZC_2_WD_AI
+[ 24] MC1_TM204_ZDJ_DZ_A_WD_AI
+[ 25] MC1_TM206_ZDJ_DZ_B_WD_AI
+[ 26] agg_tm_reducer_oil_temp
+[ 27] agg_tm_reducer_outlet_temp
+[ 28] agg_tm_cyclone_overflow_pool_level
+[ 29] agg_tm_overflow_pump_current
+[ 30] fx_nt1_motor_current
+[ 31] fx_nt2_motor_current
+[ 32] fx_nt1_underflow_density
+[ 33] fx_nt2_underflow_density
+[ 34] fx_s1_cx1_froth_h
+[ 35] fx_s1_cx1_level
+[ 36] fx_s1_cx1_level_valve_sp
+[ 37] fx_s1_cx1_level_valve_fb
+[ 38] fx_s1_cx1_air_flow
+[ 39] fx_s1_cx1_air_sp
+[ 40] fx_s1_cx1_bv_pos
+[ 41] fx_s1_cx2_froth_h
+[ 42] fx_s1_cx2_level
+[ 43] fx_s1_cx2_level_valve_sp
+[ 44] fx_s1_cx2_level_valve_fb
+[ 45] fx_s1_cx2_air_flow
+[ 46] fx_s1_cx2_air_sp
+[ 47] fx_s1_cx2_bv_pos
+[ 48] fx_s1_cx3_froth_h
+[ 49] fx_s1_cx3_level
+[ 50] fx_s1_cx3_level_valve_sp
+[ 51] fx_s1_cx3_level_valve_fb
+[ 52] fx_s1_cx3_air_flow
+[ 53] fx_s1_cx3_air_sp
+[ 54] fx_s1_cx3_bv_pos
+[ 55] fx_s1_jx_froth_h
+[ 56] fx_s1_jx_level
+[ 57] fx_s1_jx_level_valve_sp
+[ 58] fx_s1_jx_level_valve_fb
+[ 59] fx_s1_jx_air_flow
+[ 60] fx_s1_jx_air_sp
+[ 61] fx_s1_jx_bv_pos
+[ 62] fx_s1_sx1_froth_h
+[ 63] fx_s1_sx1_level
+[ 64] fx_s1_sx1_level_valve_sp
+[ 65] fx_s1_sx1_level_valve_fb
+[ 66] fx_s1_sx1_air_flow
+[ 67] fx_s1_sx1_air_sp
+[ 68] fx_s1_sx1_bv_pos
+[ 69] fx_s1_sx2_froth_h
+[ 70] fx_s1_sx2_level
+[ 71] fx_s1_sx2_level_valve_sp
+[ 72] fx_s1_sx2_level_valve_fb
+[ 73] fx_s1_sx2_air_flow
+[ 74] fx_s1_sx2_air_sp
+[ 75] fx_s1_sx2_bv_pos
+[ 76] fx_s1_sx3_froth_h
+[ 77] fx_s1_sx3_level
+[ 78] fx_s1_sx3_level_valve_sp
+[ 79] fx_s1_sx3_level_valve_fb
+[ 80] fx_s1_sx3_air_flow
+[ 81] fx_s1_sx3_air_sp
+[ 82] fx_s1_sx3_bv_pos
+[ 83] fx_s2_cx1_froth_h
+[ 84] fx_s2_cx1_level
+[ 85] fx_s2_cx1_level_valve_sp
+[ 86] fx_s2_cx1_level_valve_fb
+[ 87] fx_s2_cx1_air_flow
+[ 88] fx_s2_cx1_air_sp
+[ 89] fx_s2_cx1_bv_pos
+[ 90] fx_s2_cx2_froth_h
+[ 91] fx_s2_cx2_level
+[ 92] fx_s2_cx2_level_valve_sp
+[ 93] fx_s2_cx2_level_valve_fb
+[ 94] fx_s2_cx2_air_flow
+[ 95] fx_s2_cx2_air_sp
+[ 96] fx_s2_cx2_bv_pos
+[ 97] fx_s2_cx3_froth_h
+[ 98] fx_s2_cx3_level
+[ 99] fx_s2_cx3_level_valve_sp
+[100] fx_s2_cx3_level_valve_fb
+[101] fx_s2_cx3_air_flow
+[102] fx_s2_cx3_air_sp
+[103] fx_s2_cx3_bv_pos
+[104] fx_s2_jx_froth_h
+[105] fx_s2_jx_level
+[106] fx_s2_jx_level_valve_sp
+[107] fx_s2_jx_level_valve_fb
+[108] fx_s2_jx_air_flow
+[109] fx_s2_jx_air_sp
+[110] fx_s2_jx_bv_pos
+[111] fx_s2_sx1_froth_h
+[112] fx_s2_sx1_level
+[113] fx_s2_sx1_level_valve_sp
+[114] fx_s2_sx1_level_valve_fb
+[115] fx_s2_sx1_air_flow
+[116] fx_s2_sx1_air_sp
+[117] fx_s2_sx1_bv_pos
+[118] fx_s2_sx2_froth_h
+[119] fx_s2_sx2_level
+[120] fx_s2_sx2_level_valve_sp
+[121] fx_s2_sx2_level_valve_fb
+[122] fx_s2_sx2_air_flow
+[123] fx_s2_sx2_air_sp
+[124] fx_s2_sx2_bv_pos
+[125] fx_s2_sx3_froth_h
+[126] fx_s2_sx3_level
+[127] fx_s2_sx3_level_valve_sp
+[128] fx_s2_sx3_level_valve_fb
+[129] fx_s2_sx3_air_flow
+[130] fx_s2_sx3_air_sp
+[131] fx_s2_sx3_bv_pos
+[132] fx_s1_cx1_motor_curr
+[133] fx_s1_cx2_motor_curr
+[134] fx_s1_cx3_motor_curr
+[135] fx_s1_jx_motor_curr
+[136] fx_s1_sx1_motor_curr
+[137] fx_s1_sx2_motor_curr
+[138] fx_s1_sx3_motor_curr
+[139] fx_s2_cx1_motor_curr
+[140] fx_s2_cx2_motor_curr
+[141] fx_s2_cx3_motor_curr
+[142] fx_s2_jx_motor_curr
+[143] fx_s2_sx1_motor_curr
+[144] fx_s2_sx2_motor_curr
+[145] fx_s2_sx3_motor_curr
+[146] fx_s1_td_rough_freq
+[147] fx_s1_td_rough_curr
+[148] fx_s1_td_clean_freq
+[149] fx_s1_td_clean_curr
+[150] fx_s1_k6_rough_freq
+[151] fx_s1_k6_rough_curr
+[152] fx_s1_naoh_freq
+[153] fx_s1_naoh_curr
+[154] fx_s1_cao_freq
+[155] fx_s1_cao_curr
+[156] fx_s2_td_rough_freq
+[157] fx_s2_td_rough_curr
+[158] fx_s2_td_clean_freq
+[159] fx_s2_td_clean_curr
+[160] fx_s2_k6_rough_freq
+[161] fx_s2_k6_rough_curr
+[162] fx_s2_naoh_freq
+[163] fx_s2_naoh_curr
+[164] fx_s2_cao_freq
+[165] fx_s2_cao_curr
+[166] fx_s1_ph
+[167] fx_s2_ph
+[168] fx_s1_tk1_temp
+[169] fx_s1_tk1_steam_sp
+[170] fx_s1_tk1_steam_fb
+[171] fx_s1_tk2_temp
+[172] fx_s1_tk2_steam_sp
+[173] fx_s1_tk2_steam_fb
+[174] fx_s1_tk3_temp
+[175] fx_s1_tk3_steam_sp
+[176] fx_s1_tk3_steam_fb
+[177] fx_s2_tk1_temp
+[178] fx_s2_tk1_steam_sp
+[179] fx_s2_tk1_steam_fb
+[180] fx_s2_tk2_temp
+[181] fx_s2_tk2_steam_sp
+[182] fx_s2_tk2_steam_fb
+[183] fx_s2_tk3_temp
+[184] fx_s2_tk3_steam_sp
+[185] fx_s2_tk3_steam_fb
+[186] fx_s1_pool1_level
+[187] fx_s1_pool1_pump_freq
+[188] fx_s1_pool1_pump_curr
+[189] fx_s1_pool2_level
+[190] fx_s1_pool2_pump_freq
+[191] fx_s1_pool2_pump_curr
+[192] fx_s1_pool3_level
+[193] fx_s1_pool3_pump_freq
+[194] fx_s1_pool3_pump_curr
+[195] fx_s2_pool1_level
+[196] fx_s2_pool1_pump_freq
+[197] fx_s2_pool1_pump_curr
+[198] fx_s2_pool2_level
+[199] fx_s2_pool2_pump_freq
+[200] fx_s2_pool2_pump_curr
+[201] fx_s2_pool3_level
+[202] fx_s2_pool3_pump_freq
+[203] fx_s2_pool3_pump_curr
+[204] fx_blower1_pressure
+[205] fx_blower2_pressure
+[206] fx_ah5_power
+[207] fx_ah6_power
+[208] fx_s1_ft1701
+[209] fx_s1_ft1702
+[210] fx_s2_ft2701
+[211] fx_s2_ft2702
+[212] fx_s1_k6_level
+[213] fx_s2_k6_level

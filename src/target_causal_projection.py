@@ -254,14 +254,15 @@ def build_dml_jobs(
     G: nx.DiGraph,
     target_node: str,
     parents_df: pd.DataFrame,
+    ancestors_df: pd.DataFrame,
     descendants_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    为每个 target parent 生成一条 DML 任务。
+    为每个祖先节点（包括直接和间接）生成一条 DML 任务。
 
     adjustment_set = Pa(T) ∪ Pa(Y) - {T} - Desc(Y) - {Y}
 
-    字段：treatment, treatment_variable, treatment_lag, outcome, adjustment_set
+    字段：treatment, treatment_variable, treatment_lag, outcome, adjustment_set, distance_to_target
     """
     parent_nodes_of_target = set(parents_df["node"].tolist())
     desc_nodes = set(descendants_df["node"].tolist())
@@ -269,7 +270,9 @@ def build_dml_jobs(
     excluded = desc_nodes | {target_node}
 
     rows = []
-    for _, row in parents_df.iterrows():
+    
+    # 为所有祖先节点（包括直接父节点和间接祖先）生成 DML 任务
+    for _, row in ancestors_df.iterrows():
         treatment = row["node"]
 
         # Pa(T)：treatment 的父节点
@@ -285,13 +288,21 @@ def build_dml_jobs(
             "treatment_lag": row["lag"],
             "outcome": target_node,
             "adjustment_set": adj_str,
+            "distance_to_target": row["distance_to_target"],
         })
 
     df = pd.DataFrame(
         rows,
-        columns=["treatment", "treatment_variable", "treatment_lag", "outcome", "adjustment_set"],
+        columns=["treatment", "treatment_variable", "treatment_lag", "outcome", "adjustment_set", "distance_to_target"],
     )
-    print(f"[build_dml_jobs] 生成 DML 任务数：{len(df)}")
+    
+    # 按距离排序（距离近的优先）
+    df = df.sort_values("distance_to_target").reset_index(drop=True)
+    
+    print(f"[build_dml_jobs] 生成 DML 任务数：{len(df)}（包括所有祖先节点）")
+    print(f"  - 直接父节点（距离=1）：{(df['distance_to_target'] == 1).sum()} 个")
+    print(f"  - 间接祖先（距离>1）：{(df['distance_to_target'] > 1).sum()} 个")
+    
     return df
 
 
@@ -431,8 +442,8 @@ def main():
     ancestors_df = extract_ancestors(G, target_node)
     descendants_df = extract_descendants(G, target_node)
 
-    # 6. 构建 DML 任务表
-    dml_jobs_df = build_dml_jobs(G, target_node, parents_df, descendants_df)
+    # 6. 构建 DML 任务表（包括所有祖先节点）
+    dml_jobs_df = build_dml_jobs(G, target_node, parents_df, ancestors_df, descendants_df)
 
     # 7. 保存所有输出
     paths = save_outputs(
