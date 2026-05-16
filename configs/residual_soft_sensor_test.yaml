@@ -92,4 +92,9 @@ dml_weight_clip_min: 0.3
 dml_weight_clip_max: 3.0
 state_weight_default: 1.0
 missing_effect_weight: 1.0
+dml_weight_use_manual_selected: false
+manual_dml_weight_path: null
+dml_weight_value_col: "theta_std"
+dml_weight_variable_col: "resolved_treatment"
+dml_weight_recommended_col: "recommended_for_weight"
 allow_synthetic_demo: false
