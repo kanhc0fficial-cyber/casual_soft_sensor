@@ -17,3 +17,30 @@ scratch/**
 # Experiment outputs
 results/**
 !results/.gitkeep
+# 测试结果和临时文件
+results/multiregime_test_results/
+results/transfer_regimes_test_results/
+results/comprehensive_comparison.csv
+results/robustness_analysis.csv
+results/comprehensive_scores.csv
+results/robustness_analysis.png
+results/performance_by_dataset.png
+results/combined_test_results.csv
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

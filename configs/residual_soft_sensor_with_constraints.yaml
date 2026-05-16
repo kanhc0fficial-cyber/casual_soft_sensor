@@ -1,0 +1,200 @@
+# ==============================================================================
+# 配置文件：DML 正交残差软测量 - 启用工艺约束与反事实约束
+# 用法：python scripts/train_dml_residual_soft_sensor.py --config configs/residual_soft_sensor_with_constraints.yaml
+# ==============================================================================
+
+# ── 数据路径 ──────────────────────────────────────────────────────────────────
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
+dag_path: "data/features/global_edges.csv"
+output_dir: "results/residual_soft_sensor_with_constraints"
+
+# ── 目标变量与时间列 ───────────────────────────────────────────────────────────
+target_col: "y_fx_xin1"
+time_col: "t"
+
+# ── 操作变量 ──────────────────────────────────────────────────────────────────
+operation_vars:
+  - "fx_s1_td_rough_freq"
+  - "fx_s1_naoh_freq"
+  - "fx_s1_cao_freq"
+  - "fx_s1_cx1_air_sp"
+  - "fx_s1_cx2_air_sp"
+  - "fx_s1_cx3_air_sp"
+  - "fx_s1_jx_air_sp"
+  - "fx_s1_sx1_air_sp"
+  - "fx_s1_sx2_air_sp"
+  - "fx_s1_sx3_air_sp"
+  - "fx_s1_cx1_level_valve_sp"
+  - "fx_s1_cx2_level_valve_sp"
+  - "fx_s1_cx3_level_valve_sp"
+  - "fx_s1_tk1_steam_sp"
+  - "fx_s1_tk2_steam_sp"
+  - "fx_s1_tk3_steam_sp"
+
+# ── 排除列 ────────────────────────────────────────────────────────────────────
+exclude_cols:
+  - "y_fx_xin2"
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
+
+# ── 数据切分 ──────────────────────────────────────────────────────────────────
+train_ratio: 0.70
+val_ratio:   0.15
+test_ratio:  0.15
+
+# ── 滑动窗口 ──────────────────────────────────────────────────────────────────
+window_size: 12
+
+# ── 残差化基模型 ──────────────────────────────────────────────────────────────
+residualization_model: "lightgbm"
+residual_sequence_model: "lstm"
+
+# ── LSTM 超参 ─────────────────────────────────────────────────────────────────
+lstm_hidden_size: 64
+lstm_num_layers: 2
+lstm_dropout: 0.1
+lstm_epochs: 50
+lstm_batch_size: 64
+lstm_lr: 0.001
+lstm_patience: 8
+
+# ── 随机种子 ──────────────────────────────────────────────────────────────────
+random_seed: 42
+
+# ── DML 效应权重 ──────────────────────────────────────────────────────────────
+external_dml_effect_dir: "dml_causal_effect_value/结果/20260516_062800"
+dml_effect_variable_col: null
+dml_effect_value_col: null
+dml_weight_clip_min: 0.3
+dml_weight_clip_max: 3.0
+state_weight_default: 1.0
+missing_effect_weight: 1.0
+
+# ── 人工 DML 权重 ─────────────────────────────────────────────────────────────
+dml_weight_use_manual_selected: true
+manual_dml_weight_path: "dml_causal_effect_value/结果/manual_20260516_134710/manual_dml_theta_selected_for_weight.csv"
+dml_weight_value_col: "theta_std"
+dml_weight_variable_col: "resolved_treatment"
+dml_weight_recommended_col: "recommended_for_weight"
+
+# ── 演示模式 ──────────────────────────────────────────────────────────────────
+allow_synthetic_demo: false
+
+# ── 约束配置（新增：启用工艺约束与反事实约束）──────────────────────────────
+constraints_enabled: true
+
+# 反事实约束：基于DML因果效应的单调性约束
+use_counterfactual_constraint: true
+counterfactual_lambda: 0.1                    # 反事实约束权重
+counterfactual_delta_std: 0.05                # 扰动幅度（标准化后）
+counterfactual_apply_to: "operation_A_only"  # 只对操作变量应用
+counterfactual_min_abs_effect: 0.01          # 最小效应阈值
+counterfactual_require_recommended: true      # 只使用推荐的DML效应
+counterfactual_use_last_step_only: true       # 只在最后时间步应用
+counterfactual_default_lag: 0
+
+# 工艺约束：基于领域知识的单调性约束
+use_process_constraint: true
+process_lambda: 0.1                           # 工艺约束权重
+process_delta_std: 0.05                       # 扰动幅度
+process_require_dml_agree: true               # 要求与DML方向一致
+process_use_in_train_default: true            # 训练时启用
+process_use_in_eval_default: true             # 评估时启用
+
+# 工艺约束规则定义
+process_constraints:
+  # 捕收剂添加频率增加 -> 品位提升（正向）
+  - name: "td_rough_freq_positive"
+    variable: "fx_s1_td_rough_freq"
+    direction: 1                              # 1=正向，-1=负向
+    lag: 0                                    # 滞后步数
+    delta_std: 0.05
+    lambda: 0.1
+    require_dml_agree: true
+    min_abs_dml_effect: 0.01
+    use_in_train: true
+    use_in_eval: true
+    active_region:
+      type: "all"                             # 全范围有效
+  
+  # 粗选1充气量增加 -> 品位提升（正向）
+  - name: "cx1_air_positive"
+    variable: "fx_s1_cx1_air_sp"
+    direction: 1
+    lag: 0
+    delta_std: 0.05
+    lambda: 0.1
+    require_dml_agree: true
+    min_abs_dml_effect: 0.01
+    use_in_train: true
+    use_in_eval: true
+    active_region:
+      type: "quantile_range"                  # 在特定分位数范围内有效
+      low: 0.3
+      high: 0.9
+  
+  # 粗选2充气量增加 -> 品位提升（正向）
+  - name: "cx2_air_positive"
+    variable: "fx_s1_cx2_air_sp"
+    direction: 1
+    lag: 0
+    delta_std: 0.05
+    lambda: 0.1
+    require_dml_agree: true
+    min_abs_dml_effect: 0.01
+    use_in_train: true
+    use_in_eval: true
+    active_region:
+      type: "quantile_range"
+      low: 0.3
+      high: 0.9
+
+deterministic: true
+save_run_manifest: true

@@ -1168,8 +1168,12 @@ class LSTMRegressor:
 
         use_cf = bool(constraint_context.get("use_counterfactual_constraint", False))
         use_proc = bool(constraint_context.get("use_process_constraint", False))
-        cf_rules_in = constraint_context.get("counterfactual_rules", []) or []
-        proc_rules_in = constraint_context.get("process_rules", []) or []
+        cf_rules_in = constraint_context.get("counterfactual_rules", [])
+        if cf_rules_in is None:
+            cf_rules_in = []
+        proc_rules_in = constraint_context.get("process_rules", [])
+        if proc_rules_in is None or (isinstance(proc_rules_in, pd.DataFrame) and proc_rules_in.empty):
+            proc_rules_in = []
         cf_lambda = float(constraint_context.get("counterfactual_lambda", 0.0))
         process_lambda = float(constraint_context.get("process_lambda", 0.0))
 
@@ -1185,10 +1189,12 @@ class LSTMRegressor:
                 cf_rules.append(rr)
 
         proc_rules = []
-        if isinstance(proc_rules_in, pd.DataFrame):
+        if isinstance(proc_rules_in, pd.DataFrame) and not proc_rules_in.empty:
             proc_iter = [row.to_dict() for _, row in proc_rules_in.iterrows()]
+        elif isinstance(proc_rules_in, pd.DataFrame):
+            proc_iter = []
         else:
-            proc_iter = list(proc_rules_in)
+            proc_iter = list(proc_rules_in) if proc_rules_in else []
         for r in proc_iter:
             var = r.get("variable")
             lag = _resolve_rule_lag(r.get("lag", 0), 0)
@@ -1699,6 +1705,217 @@ def _load_manual_dml_weights(
     return df
 
 
+def build_dml_effect_weights_table(
+    cfg: dict,
+    a_cols: List[str],
+    s_cols: List[str],
+    logger: logging.Logger,
+    output_dir: Optional[Path] = None,
+) -> pd.DataFrame:
+    """
+    Build the DML effect weight table without training Model 2.
+
+    Model 3 uses this table to derive counterfactual and process constraints.
+    Keeping it independent prevents --only-model3 from silently disabling those
+    constraints when Model 2 is skipped.
+    """
+    use_manual = bool(cfg.get("dml_weight_use_manual_selected", False))
+    clip_min = float(cfg.get("dml_weight_clip_min", 0.3))
+    clip_max = float(cfg.get("dml_weight_clip_max", 3.0))
+    state_weight = float(cfg.get("state_weight_default", 1.0))
+    missing_weight = float(cfg.get("missing_effect_weight", 1.0))
+
+    var_col = cfg.get("dml_weight_variable_col", "resolved_treatment")
+    val_col = cfg.get("dml_weight_value_col", "theta_std")
+    rec_col = cfg.get("dml_weight_recommended_col", "recommended_for_weight")
+
+    rows: List[dict] = []
+    raw_weights: Dict[str, float] = {}
+
+    if use_manual:
+        manual_df = _load_manual_dml_weights(cfg, a_cols, logger)
+        if manual_df is not None:
+            manual_map = {
+                str(r[var_col]).strip().lower(): r
+                for _, r in manual_df.iterrows()
+                if pd.notna(r[var_col])
+            }
+
+            matched_a: List[str] = []
+            missing_a: List[str] = []
+            not_recommended_a: List[str] = []
+            recommended_a: List[str] = []
+            recommended_abs: List[float] = []
+
+            for col in a_cols:
+                match_row = manual_map.get(col.lower())
+                if match_row is None:
+                    missing_a.append(col)
+                    rows.append({
+                        "variable": col,
+                        "role": "operation_A",
+                        "matched_dml_variable": np.nan,
+                        "treatment_group": np.nan,
+                        "selected_lag_min": np.nan,
+                        "theta_std": np.nan,
+                        "recommended_for_weight": False,
+                        "raw_weight": float(missing_weight),
+                        "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                        "weight_source": "missing_manual_theta_default_1",
+                        "reason": "no matched resolved_treatment in manual DML file",
+                    })
+                    continue
+
+                matched_a.append(col)
+                theta_std = match_row.get(val_col, np.nan)
+                theta_std_f = float(theta_std) if pd.notna(theta_std) else np.nan
+                is_recommended = bool(match_row.get(rec_col, False))
+                treatment_group = match_row.get("treatment_group", np.nan)
+                selected_lag_min = match_row.get("selected_lag_min", np.nan)
+                reason = match_row.get("reason", "")
+
+                if is_recommended and pd.notna(theta_std_f) and np.isfinite(theta_std_f):
+                    recommended_a.append(col)
+                    recommended_abs.append(abs(theta_std_f))
+                    rows.append({
+                        "variable": col,
+                        "role": "operation_A",
+                        "matched_dml_variable": str(match_row[var_col]),
+                        "treatment_group": treatment_group,
+                        "selected_lag_min": selected_lag_min,
+                        "theta_std": theta_std_f,
+                        "recommended_for_weight": True,
+                        "raw_weight": np.nan,
+                        "final_weight": np.nan,
+                        "weight_source": "manual_theta_std_recommended",
+                        "reason": reason,
+                    })
+                else:
+                    not_recommended_a.append(col)
+                    rows.append({
+                        "variable": col,
+                        "role": "operation_A",
+                        "matched_dml_variable": str(match_row[var_col]),
+                        "treatment_group": treatment_group,
+                        "selected_lag_min": selected_lag_min,
+                        "theta_std": theta_std_f,
+                        "recommended_for_weight": False,
+                        "raw_weight": float(missing_weight),
+                        "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                        "weight_source": "manual_theta_std_not_recommended_default_1",
+                        "reason": reason if reason else "recommended_for_weight is False or theta_std invalid",
+                    })
+
+            logger.info(f"[DML weights] matched A variables: {len(matched_a)}/{len(a_cols)}")
+            logger.info(f"[DML weights] recommended_for_weight==true: {len(recommended_a)}")
+            if not_recommended_a:
+                logger.info(f"[DML weights] matched but not recommended A variables: {not_recommended_a}")
+            if missing_a:
+                logger.warning(f"[DML weights] missing A variables, default weight=1.0: {missing_a}")
+
+            mean_abs = float(np.mean(recommended_abs)) if recommended_abs else 0.0
+            if mean_abs <= 1e-12 and recommended_a:
+                logger.warning("[DML weights] recommended theta_std mean abs is near zero; defaulting weights to 1.0")
+                mean_abs = 0.0
+
+            for row in rows:
+                if row.get("weight_source") == "manual_theta_std_recommended":
+                    if mean_abs > 1e-12:
+                        rw = abs(float(row["theta_std"])) / mean_abs
+                    else:
+                        rw = float(missing_weight)
+                    row["raw_weight"] = rw
+                    row["final_weight"] = float(np.clip(rw, clip_min, clip_max))
+                raw_weights[row["variable"]] = (
+                    float(row["raw_weight"]) if pd.notna(row.get("raw_weight")) else float(missing_weight)
+                )
+        else:
+            use_manual = False
+
+    if not use_manual:
+        effect_dict, _, _, _ = _load_external_dml_effects(cfg, a_cols, logger)
+        effect_dict_lc = {str(k).strip().lower(): float(v) for k, v in effect_dict.items()}
+        matched_a: List[str] = []
+        missing_a: List[str] = []
+        available_abs: List[float] = []
+
+        for col in a_cols:
+            eff = effect_dict_lc.get(col.lower())
+            if eff is None or not np.isfinite(eff):
+                missing_a.append(col)
+                rows.append({
+                    "variable": col,
+                    "role": "operation_A",
+                    "matched_dml_variable": np.nan,
+                    "treatment_group": np.nan,
+                    "selected_lag_min": np.nan,
+                    "theta_std": np.nan,
+                    "recommended_for_weight": False,
+                    "raw_weight": float(missing_weight),
+                    "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                    "weight_source": "missing_manual_theta_default_1",
+                    "reason": "no matched treatment in external DML effect dir",
+                })
+            else:
+                matched_a.append(col)
+                available_abs.append(abs(float(eff)))
+                rows.append({
+                    "variable": col,
+                    "role": "operation_A",
+                    "matched_dml_variable": col,
+                    "treatment_group": np.nan,
+                    "selected_lag_min": np.nan,
+                    "theta_std": float(eff),
+                    "recommended_for_weight": True,
+                    "raw_weight": np.nan,
+                    "final_weight": np.nan,
+                    "weight_source": "external_dml_effect",
+                    "reason": "",
+                })
+
+        mean_abs = float(np.mean(available_abs)) if available_abs else 0.0
+        for row in rows:
+            if row["role"] != "operation_A":
+                continue
+            if row["weight_source"] == "external_dml_effect" and mean_abs > 1e-12:
+                row["raw_weight"] = float(abs(float(row["theta_std"])) / mean_abs)
+            elif pd.isna(row.get("raw_weight", np.nan)):
+                row["raw_weight"] = float(missing_weight)
+            row["final_weight"] = float(np.clip(row["raw_weight"], clip_min, clip_max))
+            raw_weights[row["variable"]] = float(row["raw_weight"])
+
+        logger.info(f"[DML weights] matched external effect A variables: {len(matched_a)}/{len(a_cols)}")
+        logger.info(f"[DML weights] missing external effect A variables: {missing_a}")
+
+    for col in s_cols:
+        rows.append({
+            "variable": col,
+            "role": "state_S",
+            "matched_dml_variable": np.nan,
+            "treatment_group": np.nan,
+            "selected_lag_min": np.nan,
+            "theta_std": np.nan,
+            "recommended_for_weight": False,
+            "raw_weight": float(state_weight),
+            "final_weight": float(state_weight),
+            "weight_source": "state_default_1",
+            "reason": "state variable, weight fixed at 1",
+        })
+        raw_weights[col] = float(state_weight)
+
+    weights_df = pd.DataFrame(rows, columns=[
+        "variable", "role", "matched_dml_variable", "treatment_group", "selected_lag_min",
+        "theta_std", "recommended_for_weight", "raw_weight", "final_weight", "weight_source", "reason",
+    ])
+
+    if output_dir is not None:
+        weights_path = output_dir / "dml_effect_weights.csv"
+        weights_df.to_csv(weights_path, index=False, encoding="utf-8-sig")
+        logger.info(f"Saved DML effect weights table: {weights_path}")
+
+    return weights_df
+
+
 def run_model2_dml_effect_weight_lstm(
     train_df: pd.DataFrame,
     val_df: pd.DataFrame,
@@ -2193,7 +2410,7 @@ def run_model3_dml_residual(
     y_base_test = g_model.predict(C_test)
 
     g_score_train = float(np.corrcoef(y_train_raw, y_base_train)[0, 1] ** 2)
-    logger.info(f"  g_model R² (train): {g_score_train:.4f}")
+    logger.info(f"  g_model R2 (train): {g_score_train:.4f}")
 
     y_res_train = y_train_raw - y_base_train
     y_res_val = y_val_raw - y_base_val
@@ -2661,6 +2878,10 @@ def main():
     parser.add_argument("--random-seed", type=int, default=None)
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--run-name", type=str, default=None)
+    parser.add_argument("--skip-model0", action="store_true", help="跳过 Model 0（基线软测量）")
+    parser.add_argument("--skip-model1", action="store_true", help="跳过 Model 1（因果输入软测量）")
+    parser.add_argument("--skip-model2", action="store_true", help="跳过 Model 2（DML效应权重软测量）")
+    parser.add_argument("--only-model3", action="store_true", help="只运行 Model 3（DML残差软测量）")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -2747,23 +2968,63 @@ def main():
 
     train_df, val_df, test_df = split_data(df_model, cfg, logger)
 
+    # ── 确定要运行的模型 ──────────────────────────────────────────────────
+    skip_model0 = args.skip_model0 or args.only_model3
+    skip_model1 = args.skip_model1 or args.only_model3
+    skip_model2 = args.skip_model2 or args.only_model3
+
     # ── 5. Model 0：基线软测量 ────────────────────────────────────────────
-    model0 = run_model0_baseline(
-        train_df, val_df, test_df,
-        all_feature_cols, target_col, cfg, logger,
-    )
+    if skip_model0:
+        logger.info("=" * 60)
+        logger.info("跳过 Model 0（基线软测量）")
+        model0 = {
+            "model_name": "baseline_all_lstm",
+            "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
+            "y_true": np.array([]),
+            "y_pred": np.array([]),
+        }
+    else:
+        model0 = run_model0_baseline(
+            train_df, val_df, test_df,
+            all_feature_cols, target_col, cfg, logger,
+        )
 
     # ── 6. Model 1：因果输入软测量 ────────────────────────────────────────
-    model1 = run_model1_causal_input(
-        train_df, val_df, test_df,
-        a_cols, s_cols, target_col, cfg, logger,
-    )
+    if skip_model1:
+        logger.info("=" * 60)
+        logger.info("跳过 Model 1（因果输入软测量）")
+        model1 = {
+            "model_name": "as_lstm",
+            "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
+            "y_true": np.array([]),
+            "y_pred": np.array([]),
+        }
+    else:
+        model1 = run_model1_causal_input(
+            train_df, val_df, test_df,
+            a_cols, s_cols, target_col, cfg, logger,
+        )
 
     # ── 7. Model 2：DML 效应权重软测量 ────────────────────────────────────
-    model2 = run_model2_dml_effect_weight_lstm(
-        train_df, val_df, test_df,
-        c_cols, a_cols, s_cols, target_col, cfg, logger, output_dir,
-    )
+    if skip_model2:
+        logger.info("=" * 60)
+        logger.info("跳过 Model 2（DML效应权重软测量）")
+        logger.info("Model 2 skipped; building DML effect weights table for Model 3 constraints.")
+        dml_effect_weights_df = build_dml_effect_weights_table(
+            cfg, a_cols, s_cols, logger, output_dir=output_dir
+        )
+        model2 = {
+            "model_name": "dml_effect_weight_lstm",
+            "metrics": {"MAE": float("nan"), "RMSE": float("nan"), "R2": float("nan")},
+            "y_true": np.array([]),
+            "y_pred": np.array([]),
+            "dml_effect_weights": dml_effect_weights_df,
+        }
+    else:
+        model2 = run_model2_dml_effect_weight_lstm(
+            train_df, val_df, test_df,
+            c_cols, a_cols, s_cols, target_col, cfg, logger, output_dir,
+        )
 
     # ── 8. Model 3：DML 残差软测量 ────────────────────────────────────────
     model3 = run_model3_dml_residual(

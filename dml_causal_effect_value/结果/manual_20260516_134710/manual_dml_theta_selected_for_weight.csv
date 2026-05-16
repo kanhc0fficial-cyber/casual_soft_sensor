@@ -1,0 +1,11 @@
+﻿treatment_group,selected_job_id,resolved_treatment,selected_lag_min,theta_raw,theta_std,ci_lo_std,ci_hi_std,recommended_for_weight,reason
+cao_freq,cao_freq_lag30,fx_s1_cao_freq,30,0.003217734892157959,0.5139212889919923,0.5088680400175414,0.5189745379664431,True,selected max abs(theta_std) among significant successful jobs
+cx1_level_control,cx1_level_control_lag15,fx_s1_cx1_level_valve_sp,15,0.12298641162397185,0.024833587621039866,0.023782351217580246,0.025884824024499486,True,selected max abs(theta_std) among significant successful jobs
+cx2_level_control,cx2_level_control_lag15,fx_s1_cx2_level_valve_sp,15,0.12342301469342275,0.025547253328730625,0.02440925428212751,0.02668525237533374,True,selected max abs(theta_std) among significant successful jobs
+naoh_freq,naoh_freq_lag30,fx_s1_naoh_freq,30,0.0037275495739410654,0.46685280592628475,0.461503919446013,0.4722016924065566,True,selected max abs(theta_std) among significant successful jobs
+ph,ph_lag30,fx_s1_ph,30,-0.0054352340970075215,-0.02952662260873787,-0.03638529271290133,-0.022667952504574415,True,selected max abs(theta_std) among significant successful jobs
+pool1_pump_freq,pool1_pump_freq_lag120,fx_s1_pool1_pump_freq,120,0.0003333716825090413,0.1210071092918757,-0.034874299207886914,0.2768885177916383,False,no significant job in group; selected max abs(theta_std) fallback
+pool2_pump_freq,pool2_pump_freq_lag30,fx_s1_pool2_pump_freq,30,-0.0005849551603102373,-0.21223225077099897,-0.35003576180089757,-0.07442873974110036,True,selected max abs(theta_std) among significant successful jobs
+sx1_air,sx1_air_lag60,fx_s1_sx1_air_sp,60,1.8806138897507,0.10557787005430724,0.09865168510609919,0.11250405500251531,True,selected max abs(theta_std) among significant successful jobs
+sx3_air,sx3_air_lag60,fx_s1_sx3_air_sp,60,0.7320053563036606,0.03973877937058752,0.031946840630326025,0.04753071811084901,True,selected max abs(theta_std) among significant successful jobs
+td_rough_freq,td_rough_freq_lag30,fx_s1_td_rough_freq,30,0.0024028664915613854,0.54606628382998,0.5412392469082099,0.55089332075175,True,selected max abs(theta_std) among significant successful jobs

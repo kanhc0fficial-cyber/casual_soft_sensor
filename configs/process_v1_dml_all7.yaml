@@ -1,0 +1,135 @@
+# Process-only variant 1: all DML-recommended A variables as monotonic process rules.
+
+data_path: "C:/Users/goldenwhale/Downloads/my_mining_simulation/output/simulation_2months_seq_hybrid_normal_fast_sampling.parquet"
+dag_path: "data/features/global_edges.csv"
+output_dir: "results/process_constraint_variants/v1_dml_all7"
+
+target_col: "y_fx_xin1"
+time_col: "t"
+
+operation_vars:
+  - "fx_s1_td_rough_freq"
+  - "fx_s1_naoh_freq"
+  - "fx_s1_cao_freq"
+  - "fx_s1_cx1_air_sp"
+  - "fx_s1_cx2_air_sp"
+  - "fx_s1_cx3_air_sp"
+  - "fx_s1_jx_air_sp"
+  - "fx_s1_sx1_air_sp"
+  - "fx_s1_sx2_air_sp"
+  - "fx_s1_sx3_air_sp"
+  - "fx_s1_cx1_level_valve_sp"
+  - "fx_s1_cx2_level_valve_sp"
+  - "fx_s1_cx3_level_valve_sp"
+  - "fx_s1_tk1_steam_sp"
+  - "fx_s1_tk2_steam_sp"
+  - "fx_s1_tk3_steam_sp"
+
+exclude_cols:
+  - "y_fx_xin2"
+  - "lab_1_eryi_f200"
+  - "lab_1_eryi_tfe"
+  - "lab_2_eryi_f200"
+  - "lab_2_eryi_tfe"
+  - "lab_3_eryi_f200"
+  - "lab_3_eryi_tfe"
+  - "lab_mag_wm_conc_tfe"
+  - "lab_mag_wm_tail_tfe"
+  - "lab_mag_hm_conc_tfe"
+  - "lab_mag_hm_tail_tfe"
+  - "lab_mag_sw_conc_tfe"
+  - "lab_mag_sw_tail_tfe"
+  - "lab_mag_mixed_conc_tfe"
+  - "lab_mag_tube_conc_tfe"
+  - "lab_mag_tube_yield"
+  - "lab_tm_feed_f325"
+  - "lab_tm_discharge_f325"
+  - "lab_tm_overflow_f325"
+  - "lab_tm_overflow_tfe"
+  - "lab_tm_overflow_conc"
+  - "lab_tm_sand_f325"
+  - "lab_flo_feed_tfe_s1"
+  - "lab_flo_feed_f325_s1"
+  - "lab_flo_conc_tfe_s1"
+  - "lab_flo_tail_tfe_s1"
+  - "lab_flo_rough_conc_tfe_s1"
+  - "lab_flo_rough_tail_tfe_s1"
+  - "lab_flo_clean_tail_tfe_s1"
+  - "lab_flo_scav1_conc_tfe_s1"
+  - "lab_flo_scav1_tail_tfe_s1"
+  - "lab_flo_scav2_conc_tfe_s1"
+  - "lab_flo_scav2_tail_tfe_s1"
+  - "lab_flo_scav3_conc_tfe_s1"
+  - "lab_flo_final_conc_yield_s1"
+  - "lab_flo_final_conc_recovery_s1"
+  - "lab_flo_feed_tfe_s2"
+  - "lab_flo_feed_f325_s2"
+  - "lab_flo_conc_tfe_s2"
+  - "lab_flo_tail_tfe_s2"
+  - "lab_flo_rough_conc_tfe_s2"
+  - "lab_flo_rough_tail_tfe_s2"
+  - "lab_flo_clean_tail_tfe_s2"
+  - "lab_flo_scav1_conc_tfe_s2"
+  - "lab_flo_scav1_tail_tfe_s2"
+  - "lab_flo_scav2_conc_tfe_s2"
+  - "lab_flo_scav2_tail_tfe_s2"
+  - "lab_flo_scav3_conc_tfe_s2"
+  - "lab_flo_final_conc_yield_s2"
+  - "lab_flo_final_conc_recovery_s2"
+
+train_ratio: 0.70
+val_ratio: 0.15
+test_ratio: 0.15
+window_size: 12
+
+residualization_model: "lightgbm"
+residual_sequence_model: "lstm"
+
+lstm_hidden_size: 64
+lstm_num_layers: 2
+lstm_dropout: 0.1
+lstm_epochs: 50
+lstm_batch_size: 64
+lstm_lr: 0.001
+lstm_patience: 8
+
+random_seed: 42
+
+external_dml_effect_dir: "dml_causal_effect_value/结果/20260516_062800"
+dml_effect_variable_col: null
+dml_effect_value_col: null
+dml_weight_clip_min: 0.3
+dml_weight_clip_max: 3.0
+state_weight_default: 1.0
+missing_effect_weight: 1.0
+
+dml_weight_use_manual_selected: true
+manual_dml_weight_path: "dml_causal_effect_value/结果/manual_20260516_134710/manual_dml_theta_selected_for_weight.csv"
+dml_weight_value_col: "theta_std"
+dml_weight_variable_col: "resolved_treatment"
+dml_weight_recommended_col: "recommended_for_weight"
+
+allow_synthetic_demo: false
+
+constraints_enabled: true
+use_counterfactual_constraint: false
+counterfactual_lambda: 0.0
+
+use_process_constraint: true
+process_lambda: 0.1
+process_delta_std: 0.05
+process_require_dml_agree: true
+process_use_in_train_default: true
+process_use_in_eval_default: true
+
+process_constraints:
+  - {name: "td_rough_freq_pos", variable: "fx_s1_td_rough_freq", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "naoh_freq_pos", variable: "fx_s1_naoh_freq", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "cao_freq_pos", variable: "fx_s1_cao_freq", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "sx1_air_pos", variable: "fx_s1_sx1_air_sp", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "sx3_air_pos", variable: "fx_s1_sx3_air_sp", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "cx1_level_valve_pos", variable: "fx_s1_cx1_level_valve_sp", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+  - {name: "cx2_level_valve_pos", variable: "fx_s1_cx2_level_valve_sp", direction: 1, lag: 0, delta_std: 0.05, lambda: 0.1, require_dml_agree: true, min_abs_dml_effect: 0.01, use_in_train: true, use_in_eval: true, active_region: {type: "all"}}
+
+deterministic: true
+save_run_manifest: true

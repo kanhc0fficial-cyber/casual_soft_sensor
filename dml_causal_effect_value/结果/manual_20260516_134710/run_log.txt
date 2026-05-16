@@ -1,0 +1,60 @@
+================================================================================
+Manual DML batch run (xin1)
+dataset=C:\Users\goldenwhale\Downloads\my_mining_simulation\output\simulation_2months_seq_hybrid_normal_fast_sampling.parquet
+jobs=C:\Users\goldenwhale\Downloads\casual_soft_sensor\casual_soft_sensor\data\features\manual_dml_jobs_xin1.csv
+target=y_fx_xin1
+n_folds=5
+output_dir=C:\Users\goldenwhale\Downloads\casual_soft_sensor\casual_soft_sensor\dml_causal_effect_value\结果\manual_20260516_134710
+================================================================================
+total_jobs=34
+[JOB] td_rough_freq_lag30 | group=td_rough_freq | treatment=fx_s1_td_rough_freq | lag_min=30 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.002403 | theta_std=0.546066 | ci_std=[0.541239,0.550893] | status=success
+[JOB] td_rough_freq_lag60 | group=td_rough_freq | treatment=fx_s1_td_rough_freq | lag_min=60 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.001967 | theta_std=0.446893 | ci_std=[0.441641,0.452146] | status=success
+[JOB] td_rough_freq_lag120 | group=td_rough_freq | treatment=fx_s1_td_rough_freq | lag_min=120 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86280 | theta_raw=0.001262 | theta_std=0.286742 | ci_std=[0.280937,0.292547] | status=success
+[JOB] naoh_freq_lag30 | group=naoh_freq | treatment=fx_s1_naoh_freq | lag_min=30 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.003728 | theta_std=0.466853 | ci_std=[0.461504,0.472202] | status=success
+[JOB] naoh_freq_lag60 | group=naoh_freq | treatment=fx_s1_naoh_freq | lag_min=60 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.002982 | theta_std=0.373474 | ci_std=[0.367725,0.379223] | status=success
+[JOB] naoh_freq_lag120 | group=naoh_freq | treatment=fx_s1_naoh_freq | lag_min=120 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86280 | theta_raw=0.001795 | theta_std=0.224868 | ci_std=[0.218717,0.231019] | status=success
+[JOB] cao_freq_lag30 | group=cao_freq | treatment=fx_s1_cao_freq | lag_min=30 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.003218 | theta_std=0.513921 | ci_std=[0.508868,0.518975] | status=success
+[JOB] cao_freq_lag60 | group=cao_freq | treatment=fx_s1_cao_freq | lag_min=60 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.002530 | theta_std=0.404019 | ci_std=[0.398489,0.409550] | status=success
+[JOB] cao_freq_lag120 | group=cao_freq | treatment=fx_s1_cao_freq | lag_min=120 | effect=total_effect | adj=18 | forbidden_removed=0 | n_eff=86280 | theta_raw=0.001613 | theta_std=0.257660 | ci_std=[0.251729,0.263592] | status=success
+[JOB] ph_lag15 | group=ph | treatment=fx_s1_ph | lag_min=15 | effect=conditional_effect | adj=22 | forbidden_removed=0 | n_eff=86385 | theta_raw=-0.004859 | theta_std=-0.026405 | ci_std=[-0.033283,-0.019527] | status=success
+[JOB] ph_lag30 | group=ph | treatment=fx_s1_ph | lag_min=30 | effect=conditional_effect | adj=22 | forbidden_removed=0 | n_eff=86370 | theta_raw=-0.005435 | theta_std=-0.029527 | ci_std=[-0.036385,-0.022668] | status=success
+[JOB] ph_lag60 | group=ph | treatment=fx_s1_ph | lag_min=60 | effect=conditional_effect | adj=22 | forbidden_removed=0 | n_eff=86340 | theta_raw=-0.004737 | theta_std=-0.025728 | ci_std=[-0.032745,-0.018711] | status=success
+[JOB] sx1_air_lag5 | group=sx1_air | treatment=fx_s1_sx1_air_sp | lag_min=5 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86395 | theta_raw=1.614820 | theta_std=0.090624 | ci_std=[0.083656,0.097592] | status=success
+[JOB] sx1_air_lag15 | group=sx1_air | treatment=fx_s1_sx1_air_sp | lag_min=15 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86385 | theta_raw=1.720624 | theta_std=0.096562 | ci_std=[0.089593,0.103530] | status=success
+[JOB] sx1_air_lag30 | group=sx1_air | treatment=fx_s1_sx1_air_sp | lag_min=30 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86370 | theta_raw=1.796320 | theta_std=0.100816 | ci_std=[0.093893,0.107738] | status=success
+[JOB] sx1_air_lag60 | group=sx1_air | treatment=fx_s1_sx1_air_sp | lag_min=60 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86340 | theta_raw=1.880614 | theta_std=0.105578 | ci_std=[0.098652,0.112504] | status=success
+[JOB] sx3_air_lag5 | group=sx3_air | treatment=fx_s1_sx3_air_sp | lag_min=5 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86395 | theta_raw=0.726328 | theta_std=0.039441 | ci_std=[0.031678,0.047204] | status=success
+[JOB] sx3_air_lag15 | group=sx3_air | treatment=fx_s1_sx3_air_sp | lag_min=15 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86385 | theta_raw=0.510653 | theta_std=0.027726 | ci_std=[0.020052,0.035400] | status=success
+[JOB] sx3_air_lag30 | group=sx3_air | treatment=fx_s1_sx3_air_sp | lag_min=30 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.718034 | theta_std=0.038981 | ci_std=[0.031244,0.046717] | status=success
+[JOB] sx3_air_lag60 | group=sx3_air | treatment=fx_s1_sx3_air_sp | lag_min=60 | effect=total_effect | adj=16 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.732005 | theta_std=0.039739 | ci_std=[0.031947,0.047531] | status=success
+[JOB] cx1_level_control_lag15 | group=cx1_level_control | treatment=fx_s1_cx1_level_valve_sp | lag_min=15 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86385 | theta_raw=0.122986 | theta_std=0.024834 | ci_std=[0.023782,0.025885] | status=success
+[JOB] cx1_level_control_lag30 | group=cx1_level_control | treatment=fx_s1_cx1_level_valve_sp | lag_min=30 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.112999 | theta_std=0.022818 | ci_std=[0.021822,0.023814] | status=success
+[JOB] cx1_level_control_lag60 | group=cx1_level_control | treatment=fx_s1_cx1_level_valve_sp | lag_min=60 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.093557 | theta_std=0.018898 | ci_std=[0.017962,0.019835] | status=success
+[JOB] cx2_level_control_lag15 | group=cx2_level_control | treatment=fx_s1_cx2_level_valve_sp | lag_min=15 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86385 | theta_raw=0.123423 | theta_std=0.025547 | ci_std=[0.024409,0.026685] | status=success
+[JOB] cx2_level_control_lag30 | group=cx2_level_control | treatment=fx_s1_cx2_level_valve_sp | lag_min=30 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86370 | theta_raw=0.112466 | theta_std=0.023281 | ci_std=[0.022170,0.024392] | status=success
+[JOB] cx2_level_control_lag60 | group=cx2_level_control | treatment=fx_s1_cx2_level_valve_sp | lag_min=60 | effect=total_or_conditional_effect | adj=16 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.099017 | theta_std=0.020503 | ci_std=[0.019344,0.021662] | status=success
+[JOB] pool2_pump_freq_lag15 | group=pool2_pump_freq | treatment=fx_s1_pool2_pump_freq | lag_min=15 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86385 | theta_raw=-0.000544 | theta_std=-0.197275 | ci_std=[-0.339983,-0.054567] | status=success
+[JOB] pool2_pump_freq_lag30 | group=pool2_pump_freq | treatment=fx_s1_pool2_pump_freq | lag_min=30 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86370 | theta_raw=-0.000585 | theta_std=-0.212232 | ci_std=[-0.350036,-0.074429] | status=success
+[JOB] pool2_pump_freq_lag60 | group=pool2_pump_freq | treatment=fx_s1_pool2_pump_freq | lag_min=60 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.000003 | theta_std=0.001001 | ci_std=[-0.148954,0.150957] | status=success
+[JOB] pool2_pump_freq_lag120 | group=pool2_pump_freq | treatment=fx_s1_pool2_pump_freq | lag_min=120 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86280 | theta_raw=0.000090 | theta_std=0.032537 | ci_std=[-0.130381,0.195455] | status=success
+[JOB] pool1_pump_freq_lag15 | group=pool1_pump_freq | treatment=fx_s1_pool1_pump_freq | lag_min=15 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86385 | theta_raw=-0.000167 | theta_std=-0.060736 | ci_std=[-0.210550,0.089078] | status=success
+[JOB] pool1_pump_freq_lag30 | group=pool1_pump_freq | treatment=fx_s1_pool1_pump_freq | lag_min=30 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86370 | theta_raw=-0.000099 | theta_std=-0.036020 | ci_std=[-0.188584,0.116544] | status=success
+[JOB] pool1_pump_freq_lag60 | group=pool1_pump_freq | treatment=fx_s1_pool1_pump_freq | lag_min=60 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86340 | theta_raw=0.000100 | theta_std=0.036377 | ci_std=[-0.119795,0.192549] | status=success
+[JOB] pool1_pump_freq_lag120 | group=pool1_pump_freq | treatment=fx_s1_pool1_pump_freq | lag_min=120 | effect=total_effect | adj=19 | forbidden_removed=0 | n_eff=86280 | theta_raw=0.000333 | theta_std=0.121007 | ci_std=[-0.034874,0.276889] | status=success
+================================================================================
+success_jobs=34
+failed_jobs=0
+[SELECT] group=cao_freq job=cao_freq_lag30 lag=30 recommended=True
+[SELECT] group=cx1_level_control job=cx1_level_control_lag15 lag=15 recommended=True
+[SELECT] group=cx2_level_control job=cx2_level_control_lag15 lag=15 recommended=True
+[SELECT] group=naoh_freq job=naoh_freq_lag30 lag=30 recommended=True
+[SELECT] group=ph job=ph_lag30 lag=30 recommended=True
+[SELECT] group=pool1_pump_freq job=pool1_pump_freq_lag120 lag=120 recommended=False
+[SELECT] group=pool2_pump_freq job=pool2_pump_freq_lag30 lag=30 recommended=True
+[SELECT] group=sx1_air job=sx1_air_lag60 lag=60 recommended=True
+[SELECT] group=sx3_air job=sx3_air_lag60 lag=60 recommended=True
+[SELECT] group=td_rough_freq job=td_rough_freq_lag30 lag=30 recommended=True
+output_dir=C:\Users\goldenwhale\Downloads\casual_soft_sensor\casual_soft_sensor\dml_causal_effect_value\结果\manual_20260516_134710
+manual_dml_theta_xin1.csv=C:\Users\goldenwhale\Downloads\casual_soft_sensor\casual_soft_sensor\dml_causal_effect_value\结果\manual_20260516_134710\manual_dml_theta_xin1.csv
+manual_dml_theta_selected_for_weight.csv=C:\Users\goldenwhale\Downloads\casual_soft_sensor\casual_soft_sensor\dml_causal_effect_value\结果\manual_20260516_134710\manual_dml_theta_selected_for_weight.csv
+================================================================================
