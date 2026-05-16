@@ -551,9 +551,40 @@ def main():
                 job_id = str(res.get("job_id", "unknown"))
                 residuals.to_csv(out_dir / f"residuals_{job_id}.csv", index=False, encoding="utf-8-sig")
 
-        theta_df = pd.DataFrame(all_results)
-        resolved_df = pd.DataFrame(resolved_rows)
-        theta_df, selected_df = enrich_and_select(theta_df, n_folds=args.n_folds)
+        if total_jobs == 0:
+            logger.log("[WARNING] no jobs matched target filter, writing empty outputs")
+            theta_df = pd.DataFrame(
+                columns=[
+                    "job_id", "target", "treatment_group", "resolved_treatment", "treatment_candidates",
+                    "treatment_lag_min", "treatment_role", "effect_type",
+                    "theta_raw", "theta_std", "se_raw", "se_std",
+                    "ci_lo_raw", "ci_hi_raw", "ci_lo_std", "ci_hi_std",
+                    "ci_cross_zero_raw", "ci_cross_zero_std",
+                    "n_effective", "n_adjustment_cols", "adjustment_cols_used", "adjustment_cols_missing",
+                    "forbidden_cols_removed", "missing_treatment_candidates", "status", "error_msg",
+                    "abs_theta_std", "is_success", "is_significant_std",
+                    "theta_std_rank_within_group", "recommended_for_weight",
+                ]
+            )
+            resolved_df = pd.DataFrame(
+                columns=[
+                    "job_id", "target", "treatment_group", "effect_type", "treatment_candidates",
+                    "resolved_treatment", "missing_treatment_candidates", "treatment_lag_min",
+                    "adjustment_candidates", "adjustment_cols_used", "adjustment_cols_missing",
+                    "forbidden_patterns", "forbidden_cols_removed", "status", "error_msg",
+                ]
+            )
+            selected_df = pd.DataFrame(
+                columns=[
+                    "treatment_group", "selected_job_id", "resolved_treatment", "selected_lag_min",
+                    "theta_raw", "theta_std", "ci_lo_std", "ci_hi_std",
+                    "recommended_for_weight", "reason",
+                ]
+            )
+        else:
+            theta_df = pd.DataFrame(all_results)
+            resolved_df = pd.DataFrame(resolved_rows)
+            theta_df, selected_df = enrich_and_select(theta_df, n_folds=args.n_folds)
 
         theta_path = out_dir / "manual_dml_theta_xin1.csv"
         resolved_path = out_dir / "manual_dml_jobs_resolved.csv"
