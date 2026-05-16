@@ -382,9 +382,10 @@ def run_single_job(
         )
         resolved_info["status"] = "success"
 
+        time_source = df["t"].to_numpy() if "t" in df.columns else np.arange(len(df))
         residuals_df = pd.DataFrame(
             {
-                "time": df["t"] if "t" in df.columns else np.arange(len(df)),
+                "time": time_source[valid_idx],
                 "Y_true": dml_result["Y_residuals"] + dml_result["Y_hat"],
                 "Y_hat": dml_result["Y_hat"],
                 "Y_residual": dml_result["Y_residuals"],
@@ -393,7 +394,6 @@ def run_single_job(
                 "T_residual": dml_result["T_residuals"],
             }
         )
-        residuals_df = residuals_df.iloc[valid_idx].reset_index(drop=True)
 
         logger.log(
             f"[JOB] {job_id} | group={group} | treatment={treatment_col} | "
