@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><graph edgedefault="directed"><node id="fx_s1_cx1_froth_h"/>
+<node id="fx_s1_cx1_level"/>
+<node id="fx_s1_cx1_air_flow"/>
+<node id="fx_s1_cx2_froth_h"/>
+<node id="fx_s1_cx2_level"/>
+<node id="fx_s1_cx2_air_flow"/>
+<node id="fx_s1_cx3_froth_h"/>
+<node id="fx_s1_cx3_level"/>
+<node id="fx_s1_cx3_air_flow"/>
+<node id="fx_s1_sx1_froth_h"/>
+<node id="fx_s1_sx1_level"/>
+<node id="fx_s1_sx1_air_flow"/>
+<node id="fx_s1_sx2_froth_h"/>
+<node id="fx_s1_sx2_level"/>
+<node id="fx_s1_sx2_air_flow"/>
+<node id="fx_s1_sx3_froth_h"/>
+<node id="fx_s1_sx3_level"/>
+<node id="fx_s1_sx3_air_flow"/>
+<node id="fx_s1_jx_froth_h"/>
+<node id="fx_s1_jx_level"/>
+<node id="fx_s1_jx_air_flow"/>
+<node id="fx_s2_sx1_froth_h"/>
+<node id="fx_s2_sx1_level"/>
+<node id="fx_s2_sx1_air_flow"/>
+<node id="fx_s2_sx2_froth_h"/>
+<node id="fx_s2_sx2_level"/>
+<node id="fx_s2_sx2_air_flow"/>
+<node id="fx_s2_sx3_froth_h"/>
+<node id="fx_s2_sx3_level"/>
+<node id="fx_s2_sx3_air_flow"/>
+<node id="fx_s2_jx_froth_h"/>
+<node id="fx_s2_jx_level"/>
+<node id="fx_s2_jx_air_flow"/>
+<node id="y_grade"/>
+</graph></graphml>

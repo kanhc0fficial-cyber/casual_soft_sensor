@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d1" for="edge" attr.name="lag" attr.type="long"/>
+<key id="d0" for="edge" attr.name="weight" attr.type="double"/>
+<graph edgedefault="directed"><node id="fx_s1_cx1_froth_h"/>
+<node id="fx_s1_cx1_level"/>
+<node id="fx_s1_cx1_air_flow"/>
+<node id="fx_s1_cx2_froth_h"/>
+<node id="fx_s1_cx2_level"/>
+<node id="fx_s1_cx2_air_flow"/>
+<node id="fx_s1_cx3_froth_h"/>
+<node id="fx_s1_cx3_level"/>
+<node id="fx_s1_cx3_air_flow"/>
+<node id="fx_s1_sx1_froth_h"/>
+<node id="fx_s1_sx1_level"/>
+<node id="fx_s1_sx1_air_flow"/>
+<node id="fx_s1_sx2_froth_h"/>
+<node id="fx_s1_sx2_level"/>
+<node id="fx_s1_sx2_air_flow"/>
+<node id="fx_s1_sx3_froth_h"/>
+<node id="fx_s1_sx3_level"/>
+<node id="fx_s1_sx3_air_flow"/>
+<node id="fx_s1_jx_froth_h"/>
+<node id="fx_s1_jx_level"/>
+<node id="fx_s1_jx_air_flow"/>
+<node id="fx_s2_sx1_froth_h"/>
+<node id="fx_s2_sx1_level"/>
+<node id="fx_s2_sx1_air_flow"/>
+<node id="fx_s2_sx2_froth_h"/>
+<node id="fx_s2_sx2_level"/>
+<node id="fx_s2_sx2_air_flow"/>
+<node id="fx_s2_sx3_froth_h"/>
+<node id="fx_s2_sx3_level"/>
+<node id="fx_s2_sx3_air_flow"/>
+<node id="fx_s2_jx_froth_h"/>
+<node id="fx_s2_jx_level"/>
+<node id="fx_s2_jx_air_flow"/>
+<node id="y_grade"/>
+<edge source="fx_s1_cx1_level" target="fx_s1_cx2_level">
+  <data key="d0">0.9076723456382751</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_cx2_level" target="fx_s1_cx3_level">
+  <data key="d0">0.8824175596237183</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_cx3_level" target="fx_s1_jx_level">
+  <data key="d0">0.8635826706886292</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_cx3_level" target="fx_s2_jx_level">
+  <data key="d0">0.8635189533233643</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_cx3_level" target="fx_s1_sx1_level">
+  <data key="d0">0.8246322274208069</data>
+  <data key="d1">2</data>
+</edge>
+<edge source="fx_s1_cx3_level" target="fx_s2_sx1_level">
+  <data key="d0">0.824634313583374</data>
+  <data key="d1">2</data>
+</edge>
+<edge source="fx_s1_sx1_level" target="fx_s2_sx1_level">
+  <data key="d0">0.03941873461008072</data>
+  <data key="d1">0</data>
+</edge>
+<edge source="fx_s1_sx1_level" target="fx_s1_sx2_level">
+  <data key="d0">0.4650591015815735</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_sx1_level" target="fx_s2_sx2_level">
+  <data key="d0">0.4648427665233612</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_sx2_level" target="fx_s1_sx3_level">
+  <data key="d0">0.46633946895599365</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s1_sx2_level" target="fx_s2_sx3_level">
+  <data key="d0">0.46389636397361755</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s2_sx1_level" target="fx_s1_sx2_level">
+  <data key="d0">0.45010340213775635</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s2_sx1_level" target="fx_s2_sx2_level">
+  <data key="d0">0.4503401517868042</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s2_sx2_level" target="fx_s1_sx3_level">
+  <data key="d0">0.45419222116470337</data>
+  <data key="d1">1</data>
+</edge>
+<edge source="fx_s2_sx2_level" target="fx_s2_sx3_level">
+  <data key="d0">0.4566195607185364</data>
+  <data key="d1">1</data>
+</edge>
+</graph></graphml>
