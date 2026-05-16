@@ -145,6 +145,12 @@ def load_config(config_path: str) -> dict:
         "dml_weight_clip_max": 3.0,
         "state_weight_default": 1.0,
         "missing_effect_weight": 1.0,
+        # ── 新增：人工 DML 权重配置 ──────────────────────────────────────────
+        "manual_dml_weight_path": None,
+        "dml_weight_use_manual_selected": False,
+        "dml_weight_value_col": "theta_std",
+        "dml_weight_variable_col": "resolved_treatment",
+        "dml_weight_recommended_col": "recommended_for_weight",
     }
     for k, v in defaults.items():
         cfg.setdefault(k, v)
@@ -998,6 +1004,73 @@ def _load_external_dml_effects(
     return effect_dict, best["path"], best["var_col"], best["effect_col"]
 
 
+def _load_manual_dml_weights(
+    cfg: dict,
+    a_cols: List[str],
+    logger: logging.Logger,
+) -> Optional[pd.DataFrame]:
+    """
+    读取 manual_dml_theta_selected_for_weight.csv，返回 DataFrame 或 None。
+
+    文件必须包含列：
+      resolved_treatment, theta_std, recommended_for_weight
+    可选列：treatment_group, selected_lag_min, reason
+
+    若文件不存在或无法解析，发出 warning 并返回 None（调用方应回退为默认权重 1.0）。
+    """
+    raw_path = cfg.get("manual_dml_weight_path")
+    if not raw_path:
+        logger.warning(
+            "manual_dml_weight_path 未配置，无法读取人工 DML 结果。"
+            " Model 2 将回退为默认权重 1.0。"
+        )
+        return None
+
+    weight_path = Path(str(raw_path).replace("\\", os.sep))
+    if not weight_path.is_absolute():
+        repo_root = Path(__file__).resolve().parents[1]
+        alt = repo_root / weight_path
+        if alt.exists():
+            weight_path = alt
+
+    if not weight_path.exists():
+        logger.warning(
+            f"manual_dml_weight_path 指定的文件不存在: {weight_path}。"
+            " Model 2 将回退为默认权重 1.0，请检查路径或先运行人工 DML 批量估计脚本。"
+        )
+        return None
+
+    logger.info(f"[Model 2] 读取人工 DML 权重文件: {weight_path}")
+
+    try:
+        df = pd.read_csv(weight_path)
+    except Exception as e:
+        logger.warning(f"读取人工 DML 权重文件失败: {e}。Model 2 将回退为默认权重 1.0。")
+        return None
+
+    logger.info(f"[Model 2] 文件列名: {df.columns.tolist()}")
+
+    var_col = cfg.get("dml_weight_variable_col", "resolved_treatment")
+    val_col = cfg.get("dml_weight_value_col", "theta_std")
+    rec_col = cfg.get("dml_weight_recommended_col", "recommended_for_weight")
+
+    missing_required = [c for c in [var_col, val_col, rec_col] if c not in df.columns]
+    if missing_required:
+        logger.warning(
+            f"人工 DML 权重文件缺少必需列: {missing_required}。"
+            " Model 2 将回退为默认权重 1.0。"
+        )
+        return None
+
+    df[var_col] = df[var_col].astype(str).str.strip()
+    df[val_col] = pd.to_numeric(df[val_col], errors="coerce")
+    df[rec_col] = df[rec_col].astype(str).str.strip().str.lower().map(
+        {"true": True, "1": True, "yes": True, "false": False, "0": False, "no": False}
+    ).fillna(False).astype(bool)
+
+    return df
+
+
 def run_model2_dml_effect_weight_lstm(
     train_df: pd.DataFrame,
     val_df: pd.DataFrame,
@@ -1036,86 +1109,240 @@ def run_model2_dml_effect_weight_lstm(
     X_vl_scaled, y_vl = apply_scalers(val_df, feature_cols, target_col, feat_scaler, y_scaler)
     X_te_scaled, y_te = apply_scalers(test_df, feature_cols, target_col, feat_scaler, y_scaler)
 
-    effect_dict, effect_file, effect_var_col, effect_value_col = _load_external_dml_effects(cfg, a_cols, logger)
-    if effect_file is None:
-        logger.warning("未读取到外部 DML effect 文件，将使用默认权重。")
+    use_manual = bool(cfg.get("dml_weight_use_manual_selected", False))
+    logger.info(f"[Model 2] 是否启用人工 DML 权重 (dml_weight_use_manual_selected): {use_manual}")
 
     clip_min = float(cfg.get("dml_weight_clip_min", 0.3))
     clip_max = float(cfg.get("dml_weight_clip_max", 3.0))
     state_weight = float(cfg.get("state_weight_default", 1.0))
     missing_weight = float(cfg.get("missing_effect_weight", 1.0))
 
-    effect_dict_lc = {str(k).strip().lower(): float(v) for k, v in effect_dict.items()}
-    matched_a = []
-    missing_a = []
-    available_abs = []
-    raw_weights = {}
-    rows = []
+    var_col = cfg.get("dml_weight_variable_col", "resolved_treatment")
+    val_col = cfg.get("dml_weight_value_col", "theta_std")
+    rec_col = cfg.get("dml_weight_recommended_col", "recommended_for_weight")
 
-    for col in a_cols:
-        eff = effect_dict_lc.get(col.lower())
-        if eff is None or not np.isfinite(eff):
-            missing_a.append(col)
-            rows.append({
-                "variable": col,
-                "role": "operation_A",
-                "effect": np.nan,
-                "abs_effect": np.nan,
-                "sign": np.nan,
-                "raw_weight": float(missing_weight),
-                "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
-                "weight_source": "missing_effect_default_1",
-            })
+    rows: List[dict] = []
+    raw_weights: Dict[str, float] = {}
+    no_recommended_note = ""
+
+    if use_manual:
+        manual_df = _load_manual_dml_weights(cfg, a_cols, logger)
+        if manual_df is not None:
+            logger.info(
+                f"[Model 2] 读取成功。A 变量数量: {len(a_cols)}，"
+                f"权重文件行数: {len(manual_df)}"
+            )
+            # 构建 resolved_treatment -> row 映射（不区分大小写）
+            manual_map = {
+                str(r[var_col]).strip().lower(): r
+                for _, r in manual_df.iterrows()
+                if pd.notna(r[var_col])
+            }
+
+            matched_a: List[str] = []
+            missing_a: List[str] = []
+            not_recommended_a: List[str] = []
+            recommended_a: List[str] = []
+            recommended_abs: List[float] = []
+
+            # 第一遍：确定匹配与 recommended 状态
+            for col in a_cols:
+                match_row = manual_map.get(col.lower())
+                if match_row is None:
+                    missing_a.append(col)
+                    rows.append({
+                        "variable": col,
+                        "role": "operation_A",
+                        "matched_dml_variable": np.nan,
+                        "treatment_group": np.nan,
+                        "selected_lag_min": np.nan,
+                        "theta_std": np.nan,
+                        "recommended_for_weight": False,
+                        "raw_weight": float(missing_weight),
+                        "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                        "weight_source": "missing_manual_theta_default_1",
+                        "reason": "no matched resolved_treatment in manual DML file",
+                    })
+                else:
+                    matched_a.append(col)
+                    theta_std = match_row.get(val_col, np.nan)
+                    theta_std_f = float(theta_std) if pd.notna(theta_std) else np.nan
+                    is_recommended = bool(match_row.get(rec_col, False))
+                    treatment_group = match_row.get("treatment_group", np.nan)
+                    selected_lag_min = match_row.get("selected_lag_min", np.nan)
+                    reason = match_row.get("reason", "")
+
+                    if is_recommended and pd.notna(theta_std_f) and np.isfinite(theta_std_f):
+                        recommended_a.append(col)
+                        recommended_abs.append(abs(theta_std_f))
+                        rows.append({
+                            "variable": col,
+                            "role": "operation_A",
+                            "matched_dml_variable": str(match_row[var_col]),
+                            "treatment_group": treatment_group,
+                            "selected_lag_min": selected_lag_min,
+                            "theta_std": theta_std_f,
+                            "recommended_for_weight": True,
+                            "raw_weight": np.nan,  # 待第二遍填入
+                            "final_weight": np.nan,
+                            "weight_source": "manual_theta_std_recommended",
+                            "reason": reason,
+                        })
+                    else:
+                        not_recommended_a.append(col)
+                        rows.append({
+                            "variable": col,
+                            "role": "operation_A",
+                            "matched_dml_variable": str(match_row[var_col]),
+                            "treatment_group": treatment_group,
+                            "selected_lag_min": selected_lag_min,
+                            "theta_std": theta_std_f,
+                            "recommended_for_weight": False,
+                            "raw_weight": float(missing_weight),
+                            "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                            "weight_source": "manual_theta_std_not_recommended_default_1",
+                            "reason": reason if reason else "recommended_for_weight is False or theta_std invalid",
+                        })
+
+            # 日志
+            logger.info(
+                f"[Model 2] 成功匹配 A 变量数量: {len(matched_a)}/{len(a_cols)}"
+            )
+            logger.info(
+                f"[Model 2] recommended_for_weight==true 的数量: {len(recommended_a)}"
+            )
+            if not_recommended_a:
+                logger.info(
+                    f"[Model 2] recommended_for_weight==false 的匹配变量: {not_recommended_a}"
+                )
+            if missing_a:
+                logger.warning(
+                    f"[Model 2] 未匹配到 theta_std 的 A 变量 (权重回退为 1.0): {missing_a}"
+                )
+
+            # 第二遍：对 recommended A 变量做均值归一化
+            mean_abs = float(np.mean(recommended_abs)) if recommended_abs else 0.0
+            if mean_abs <= 1e-12 and recommended_a:
+                logger.warning(
+                    "[Model 2] recommended A 变量 theta_std 绝对值均值接近 0，"
+                    "A 变量权重全部回退为 1.0。"
+                )
+                mean_abs = 0.0
+
+            if not recommended_a:
+                logger.warning(
+                    "[Model 2] 没有任何 A 变量满足 recommended_for_weight==true；"
+                    " dml_effect_weight_lstm 退化为 as_lstm 风格的等权重。"
+                )
+                no_recommended_note = "no recommended theta_std matched; weights default to 1"
+                # 将所有 recommended 行（此时为空）的 raw/final 设为 1
+            else:
+                theta_std_vals = [abs(r["theta_std"]) for r in rows if r.get("weight_source") == "manual_theta_std_recommended"]
+                logger.info(
+                    "[Model 2] theta_std 统计: min=%.6f, max=%.6f, mean=%.6f",
+                    float(np.min(theta_std_vals)),
+                    float(np.max(theta_std_vals)),
+                    float(np.mean(theta_std_vals)),
+                )
+
+            for row in rows:
+                if row.get("weight_source") == "manual_theta_std_recommended":
+                    if mean_abs > 1e-12:
+                        rw = abs(float(row["theta_std"])) / mean_abs
+                    else:
+                        rw = float(missing_weight)
+                    row["raw_weight"] = rw
+                    row["final_weight"] = float(np.clip(rw, clip_min, clip_max))
+                raw_weights[row["variable"]] = float(row["raw_weight"]) if pd.notna(row.get("raw_weight")) else float(missing_weight)
+
         else:
-            matched_a.append(col)
-            ae = abs(float(eff))
-            available_abs.append(ae)
-            rows.append({
-                "variable": col,
-                "role": "operation_A",
-                "effect": float(eff),
-                "abs_effect": ae,
-                "sign": float(np.sign(eff)),
-                "raw_weight": np.nan,
-                "final_weight": np.nan,
-                "weight_source": "external_dml_effect",
-            })
+            # manual_df 为 None：文件不存在或解析失败，已在 _load_manual_dml_weights 中发出 warning
+            logger.warning("[Model 2] 人工 DML 权重文件无法读取，所有 A 变量使用默认权重 1.0。")
+            use_manual = False  # 降级为旧逻辑
 
-    mean_abs = float(np.mean(available_abs)) if available_abs else 0.0
-    if mean_abs <= 1e-12 and matched_a:
-        logger.warning("匹配到的 A 变量效应绝对值均值接近 0，A 变量权重回退为默认值 1.0。")
+    if not use_manual:
+        # 旧逻辑：读取外部 DML effect 目录
+        effect_dict, effect_file, effect_var_col, effect_value_col = _load_external_dml_effects(cfg, a_cols, logger)
+        if effect_file is None:
+            logger.warning("未读取到外部 DML effect 文件，将使用默认权重。")
 
-    for row in rows:
-        if row["role"] != "operation_A":
-            continue
-        if row["weight_source"] == "external_dml_effect" and mean_abs > 1e-12:
-            row["raw_weight"] = float(row["abs_effect"] / mean_abs)
-        elif np.isnan(row["raw_weight"]):
-            row["raw_weight"] = float(missing_weight)
-        row["final_weight"] = float(np.clip(row["raw_weight"], clip_min, clip_max))
-        raw_weights[row["variable"]] = row["raw_weight"]
+        effect_dict_lc = {str(k).strip().lower(): float(v) for k, v in effect_dict.items()}
+        matched_a_old: List[str] = []
+        missing_a_old: List[str] = []
+        available_abs_old: List[float] = []
 
+        for col in a_cols:
+            eff = effect_dict_lc.get(col.lower())
+            if eff is None or not np.isfinite(eff):
+                missing_a_old.append(col)
+                rows.append({
+                    "variable": col,
+                    "role": "operation_A",
+                    "matched_dml_variable": np.nan,
+                    "treatment_group": np.nan,
+                    "selected_lag_min": np.nan,
+                    "theta_std": np.nan,
+                    "recommended_for_weight": False,
+                    "raw_weight": float(missing_weight),
+                    "final_weight": float(np.clip(missing_weight, clip_min, clip_max)),
+                    "weight_source": "missing_manual_theta_default_1",
+                    "reason": "no matched treatment in external DML effect dir",
+                })
+            else:
+                matched_a_old.append(col)
+                ae = abs(float(eff))
+                available_abs_old.append(ae)
+                rows.append({
+                    "variable": col,
+                    "role": "operation_A",
+                    "matched_dml_variable": col,
+                    "treatment_group": np.nan,
+                    "selected_lag_min": np.nan,
+                    "theta_std": float(eff),
+                    "recommended_for_weight": True,
+                    "raw_weight": np.nan,
+                    "final_weight": np.nan,
+                    "weight_source": "external_dml_effect",
+                    "reason": "",
+                })
+
+        mean_abs_old = float(np.mean(available_abs_old)) if available_abs_old else 0.0
+        if mean_abs_old <= 1e-12 and matched_a_old:
+            logger.warning("匹配到的 A 变量效应绝对值均值接近 0，A 变量权重回退为默认值 1.0。")
+
+        for row in rows:
+            if row["role"] != "operation_A":
+                continue
+            if row["weight_source"] == "external_dml_effect" and mean_abs_old > 1e-12:
+                row["raw_weight"] = float(abs(float(row["theta_std"])) / mean_abs_old)
+            elif pd.isna(row.get("raw_weight", np.nan)):
+                row["raw_weight"] = float(missing_weight)
+            row["final_weight"] = float(np.clip(row["raw_weight"], clip_min, clip_max))
+            raw_weights[row["variable"]] = float(row["raw_weight"])
+
+        logger.info(f"成功匹配到 effect 的 A 变量数量: {len(matched_a_old)}/{len(a_cols)}")
+        logger.info(f"缺失 effect 的 A 变量列表: {missing_a_old}")
+
+    # S 变量：统一权重 1.0
     for col in s_cols:
         rows.append({
             "variable": col,
             "role": "state_S",
-            "effect": np.nan,
-            "abs_effect": np.nan,
-            "sign": np.nan,
+            "matched_dml_variable": np.nan,
+            "treatment_group": np.nan,
+            "selected_lag_min": np.nan,
+            "theta_std": np.nan,
+            "recommended_for_weight": False,
             "raw_weight": float(state_weight),
             "final_weight": float(state_weight),
             "weight_source": "state_default_1",
+            "reason": "state variable, weight fixed at 1",
         })
         raw_weights[col] = float(state_weight)
 
-    logger.info(f"成功匹配到 effect 的 A 变量数量: {len(matched_a)}/{len(a_cols)}")
-    logger.info(f"缺失 effect 的 A 变量列表: {missing_a}")
-
-    a_raw_values = [raw_weights[c] for c in a_cols if c in raw_weights]
-    a_final_values = []
-    for r in rows:
-        if r["role"] == "operation_A":
-            a_final_values.append(float(r["final_weight"]))
+    # 统计日志
+    a_raw_values = [raw_weights.get(c, missing_weight) for c in a_cols]
+    a_final_values = [float(r["final_weight"]) for r in rows if r["role"] == "operation_A"]
     if a_raw_values:
         logger.info(
             "A变量 raw_weight 统计: min=%.6f, max=%.6f, mean=%.6f",
@@ -1133,7 +1360,8 @@ def run_model2_dml_effect_weight_lstm(
     logger.info(f"S变量数量及默认权重: count={len(s_cols)}, weight={state_weight}")
 
     weights_df = pd.DataFrame(rows, columns=[
-        "variable", "role", "effect", "abs_effect", "sign", "raw_weight", "final_weight", "weight_source"
+        "variable", "role", "matched_dml_variable", "treatment_group", "selected_lag_min",
+        "theta_std", "recommended_for_weight", "raw_weight", "final_weight", "weight_source", "reason",
     ])
     weights_path = output_dir / "dml_effect_weights.csv"
     weights_df.to_csv(weights_path, index=False, encoding="utf-8-sig")
@@ -1169,6 +1397,8 @@ def run_model2_dml_effect_weight_lstm(
     y_true = y_scaler.inverse_transform(yw_te.reshape(-1, 1)).ravel()
     metrics = compute_metrics(y_true, y_pred)
     logger.info(f"Model 2 Test: MAE={metrics['MAE']:.4f}, RMSE={metrics['RMSE']:.4f}, R2={metrics['R2']:.4f}")
+    if no_recommended_note:
+        metrics["note"] = no_recommended_note
 
     predictions_test = pd.DataFrame({"y_true": y_true, "y_pred": y_pred})
     pred_path = output_dir / "dml_effect_weight_predictions_test.csv"
@@ -1186,9 +1416,9 @@ def run_model2_dml_effect_weight_lstm(
         "feature_cols": feature_cols,
         "predictions_test": predictions_test,
         "dml_effect_weights": weights_df,
-        "dml_effect_file": str(effect_file) if effect_file else "",
-        "dml_effect_variable_col": effect_var_col,
-        "dml_effect_value_col": effect_value_col,
+        "dml_effect_file": "",
+        "dml_effect_variable_col": var_col,
+        "dml_effect_value_col": val_col,
     }
 
 
