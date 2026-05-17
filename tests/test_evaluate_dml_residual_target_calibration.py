@@ -15,6 +15,8 @@ from evaluate_dml_residual_target_calibration import (  # noqa: E402
     _evaluate_variant,
     _safe_name_from_path,
     _split_target_by_time,
+    build_temporal_c_features,
+    parse_int_list,
 )
 
 
@@ -42,6 +44,14 @@ class _ZeroResidualLSTM:
     def predict(self, xw):
         xw = np.asarray(xw)
         return np.zeros(xw.shape[0], dtype=float)
+
+
+class _OffsetScaler:
+    def transform(self, x):
+        return np.asarray(x, dtype=float) + 1.0
+
+    def inverse_transform(self, x):
+        return np.asarray(x)
 
 
 def test_safe_name_from_windows_style_path():
@@ -98,3 +108,38 @@ def test_evaluate_variant_outputs_expected_columns_and_perfect_scores():
     assert metrics["RMSE"] == pytest.approx(0.0)
     assert metrics["R2"] == pytest.approx(1.0)
     assert metrics["residual_bias_proxy"] == pytest.approx(0.0)
+
+
+def test_parse_int_list_handles_valid_and_invalid_values():
+    assert parse_int_list("1, 3,6,12") == [1, 3, 6, 12]
+    assert parse_int_list("") == []
+    with pytest.raises(ValueError):
+        parse_int_list("1,a,3")
+    with pytest.raises(ValueError):
+        parse_int_list("0,2")
+
+
+def test_build_temporal_c_features_builds_expected_columns_and_no_nan():
+    df = pd.DataFrame(
+        {
+            "c1": [1.0, 2.0, 3.0, 4.0],
+            "c2": [10.0, 20.0, 30.0, 40.0],
+        }
+    )
+    feats, names = build_temporal_c_features(
+        df=df,
+        c_cols=["c1", "c2"],
+        c_scaler=_OffsetScaler(),
+        lags=[1],
+        rollings=[2],
+        diffs=[1],
+        fill_mode="ffill_bfill",
+    )
+
+    expected_count = 2 + 2 + 2 + 2 + 2  # current + lag + rollmean + rollstd + diff
+    assert feats.shape == (4, expected_count)
+    assert len(names) == expected_count
+    assert "c1_lag1" in names
+    assert "c2_rollstd2" in names
+    assert "c1_diff1" in names
+    assert np.isfinite(feats).all()
